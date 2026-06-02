@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://skei.edu.in"),
   title: "Best CBSE School in Bangalore | Admissions Open 2026–27 | SKEI",
   description:
-    "Enrol your child at SKEI, a top-ranked CBSE school near Queens Road, Vasanth Nagar. 95 years of excellence. Nursery to Grade 10. Book a free school visit today.",
+    "Enrol your child at SKEI, a top-ranked CBSE school near Queens Road, Vasanth Nagar. A legacy of excellence since 1931. Nursery to Grade 10. Book a free school visit today.",
   keywords: [
     "best cbse school bangalore",
     "cbse school admissions bangalore",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Best CBSE School in Bangalore | Admissions Open 2026–27 | SKEI",
     description:
-      "Enrol your child at SKEI, a top-ranked CBSE school near Queens Road, Vasanth Nagar. 95 years of excellence. Nursery to Grade 10. Book a free school visit today.",
+      "Enrol your child at SKEI, a top-ranked CBSE school near Queens Road, Vasanth Nagar. A legacy of excellence since 1931. Nursery to Grade 10. Book a free school visit today.",
     url: "https://skei.edu.in",
     siteName: "SKEI Bangalore",
     images: [
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Best CBSE School in Bangalore | Admissions Open 2026–27 | SKEI",
     description:
-      "Enrol your child at SKEI, a top-ranked CBSE school near Queens Road, Vasanth Nagar. 95 years of excellence.",
+      "Enrol your child at SKEI, a top-ranked CBSE school near Queens Road, Vasanth Nagar. A legacy of excellence since 1931.",
     images: ["/logo.png"],
   },
   robots: {

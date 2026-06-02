@@ -33,7 +33,7 @@ function Logo() {
 }
 
 export default function Navbar() {
-  const { scrolled } = useScrollState();
+  const { scrolled, hidden } = useScrollState();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const goTo = useCallback((id: string) => {
@@ -47,7 +47,11 @@ export default function Navbar() {
   }`;
 
   return (
-    <header className="pointer-events-none fixed inset-x-0 top-0 z-50">
+    <motion.header
+      animate={{ y: hidden && !menuOpen ? "-110%" : "0%" }}
+      transition={{ duration: 0.3, ease: EASE }}
+      className="pointer-events-none fixed inset-x-0 top-0 z-50"
+    >
       <div className="mx-auto max-w-[90rem] px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
         <div className={`${bar} flex flex-col overflow-hidden`}>
           <div className="flex items-center justify-between gap-3 py-1.5 pl-4 pr-1.5 sm:pl-5">
@@ -141,6 +145,6 @@ export default function Navbar() {
           </AnimatePresence>
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 }

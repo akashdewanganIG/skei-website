@@ -6,7 +6,7 @@ import { EASE, containerVariants, itemVariants } from "@/lib/animations";
 import { ENQUIRY_ID } from "@/lib/constants";
 
 const STATS: { value: string; prefix?: string; accent?: string; label: string }[] = [
-  { value: "95", label: "Years of legacy" },
+  { value: "1931", label: "Established" },
   { value: "1", prefix: "#", label: "Vintage School in Karnataka" },
   { value: "CBSE", label: "Affiliated curriculum" },
 ];
@@ -36,8 +36,8 @@ export default function Hero() {
               variants={itemVariants}
               className="mt-5 max-w-xl text-base leading-relaxed text-balance text-muted sm:mt-6 sm:text-[1.05rem]"
             >
-              Set on a five-acre heritage campus in the heart of Bangalore, shaded by 100-year-old
-              trees, SKEI pairs a rigorous CBSE curriculum with hands-on, whole-child learning.
+              Set in the heart of Bangalore, shaded by 100-year-old trees, SKEI pairs a rigorous
+              CBSE curriculum with hands-on, whole-child learning.
             </motion.p>
 
             <motion.dl
