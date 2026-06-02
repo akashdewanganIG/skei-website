@@ -4,14 +4,12 @@ export async function submitEnquiry(payload: Record<string, string>) {
     throw new Error("Google Script URL is not defined.");
   }
 
-  const formData = new URLSearchParams();
-  Object.entries(payload).forEach(([key, value]) => {
-    formData.append(key, value);
-  });
-
   return fetch(scriptUrl, {
     method: "POST",
-    body: formData,
     mode: "no-cors",
+    body: JSON.stringify(payload),
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8",
+    },
   });
 }
