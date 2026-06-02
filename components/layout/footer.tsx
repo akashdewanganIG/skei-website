@@ -12,7 +12,8 @@ const ACADEMIC_LINKS = [
   "Secondary (Grades 9–10)",
 ];
 
-const footerLinkClass = "w-fit text-left text-[13px] text-ivory/60 transition-colors hover:text-clay";
+const footerLinkClass =
+  "w-fit text-left text-[13px] text-ivory/60 transition-colors hover:text-clay";
 const footerHeadingClass = "font-display text-base font-semibold text-ivory";
 
 export default function Footer() {
@@ -75,7 +76,11 @@ export default function Footer() {
             <ul className="mt-4 flex flex-col gap-2.5">
               {ACADEMIC_LINKS.map((label) => (
                 <li key={label}>
-                  <button type="button" onClick={() => scrollToId("academics")} className={footerLinkClass}>
+                  <button
+                    type="button"
+                    onClick={() => scrollToId("academics")}
+                    className={footerLinkClass}
+                  >
                     {label}
                   </button>
                 </li>
@@ -88,7 +93,11 @@ export default function Footer() {
             <ul className="mt-4 flex flex-col gap-2.5">
               {NAV_LINKS.map((n) => (
                 <li key={n.id}>
-                  <button type="button" onClick={() => scrollToId(n.id)} className={footerLinkClass}>
+                  <button
+                    type="button"
+                    onClick={() => scrollToId(n.id)}
+                    className={footerLinkClass}
+                  >
                     {n.label}
                   </button>
                 </li>

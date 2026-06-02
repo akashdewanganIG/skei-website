@@ -37,14 +37,17 @@ const getSelectClassNames = (error?: string) => ({
   control: ({ isFocused }: { isFocused: boolean }) => {
     const base = "w-full rounded-xl border px-3.5 py-2 text-xs transition-all duration-300";
     const focusClasses = isFocused ? "bg-surface ring-2 ring-clay/40 border-clay/50" : "bg-bg/60";
-    const borderClasses = error ? "border-clay ring-2 ring-clay/30" : "border-fg/25 hover:border-fg/40";
+    const borderClasses = error
+      ? "border-clay ring-2 ring-clay/30"
+      : "border-fg/25 hover:border-fg/40";
     return `${base} ${focusClasses} ${borderClasses}`;
   },
   menu: () =>
     "mt-1.5 rounded-[14px] border border-fg/10 bg-surface/95 p-1 text-[0.7rem] shadow-lift backdrop-blur-xl z-50 overflow-hidden",
   menuList: () => "no-scrollbar max-h-[220px]",
   option: ({ isFocused, isSelected }: { isFocused: boolean; isSelected: boolean }) => {
-    const base = "w-full rounded-[10px] px-3 py-1.5 text-left text-[0.7rem] transition-all duration-200 cursor-pointer mb-px last:mb-0";
+    const base =
+      "w-full rounded-[10px] px-3 py-1.5 text-left text-[0.7rem] transition-all duration-200 cursor-pointer mb-px last:mb-0";
     if (isSelected) return `${base} bg-clay/10 font-semibold text-clay`;
     if (isFocused) return `${base} bg-ivory-2 text-fg font-medium`;
     return `${base} text-fg/70 hover:text-fg hover:bg-bg/40`;

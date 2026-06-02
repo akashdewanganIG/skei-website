@@ -63,7 +63,8 @@ function validate(f: Fields): Errors {
   if (!f.dob) e.dob = "Enter the date of birth.";
   if (!f.gender) e.gender = "Select a gender.";
   if (f.parent.trim().length < 2) e.parent = "Please enter the parent's name.";
-  if (!/^\d{10}$/.test(f.phone.replace(/\D/g, ""))) e.phone = "Enter a valid 10-digit phone number.";
+  if (!/^\d{10}$/.test(f.phone.replace(/\D/g, "")))
+    e.phone = "Enter a valid 10-digit phone number.";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) e.email = "Enter a valid email address.";
   if (f.comment.trim().length < 2) e.comment = "Please leave a comment.";
   return e;
@@ -81,8 +82,7 @@ export default function EnquiryForm() {
   };
 
   const onInputChange =
-    (k: keyof Fields) =>
-    (ev: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    (k: keyof Fields) => (ev: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setField(k, ev.target.value);
 
   const onSubmit = async (ev: React.FormEvent) => {
