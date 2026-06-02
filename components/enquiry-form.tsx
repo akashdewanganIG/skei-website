@@ -97,9 +97,16 @@ export default function EnquiryForm() {
     }
 
     setSubmitting(true);
+
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, "0");
+    const month = String(now.getMonth() + 1).padStart(2, "0"); // +1 because months are 0-indexed
+    const year = now.getFullYear();
+    const formattedDate = `${day}-${month}-${year}`;
+
     try {
       await submitEnquiry({
-        submit_date: new Date().toLocaleString(),
+        submit_date: formattedDate, // Now sending the perfect format
         student_name: f.student,
         grade: f.grade,
         dob: f.dob,
