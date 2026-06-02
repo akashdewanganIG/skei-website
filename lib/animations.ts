@@ -1,4 +1,4 @@
-export const EASE = [0.2, 0, 0, 1] as const;
+export const EASE: [number, number, number, number] = [0.2, 0, 0, 1];
 
 export const containerVariants = {
   hidden: {},
