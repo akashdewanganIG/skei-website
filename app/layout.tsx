@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
+import { Toaster } from "sonner";
 import { inter, lora, jetbrainsMono, caveat } from "./fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://skei.edu.in"),
-  title: "Best CBSE School in Bangalore | Admissions Open 2025–26 | SKEI",
+  title: "Best CBSE School in Bangalore | Admissions Open 2026–27 | SKEI",
   description:
-    "Enrol your child at SKEI — ranked top CBSE school near Queens Road, Vasanth Nagar. 90+ years of excellence. Nursery to Grade 10. Book a free school visit today.",
+    "Enrol your child at SKEI, a top-ranked CBSE school near Queens Road, Vasanth Nagar. 95 years of excellence. Nursery to Grade 10. Book a free school visit today.",
   keywords: [
     "best cbse school bangalore",
     "cbse school admissions bangalore",
@@ -18,11 +19,11 @@ export const metadata: Metadata = {
   authors: [{ name: "SKEI" }],
   creator: "Smt. Kamalabai Educational Institution",
   openGraph: {
-    title: "Best CBSE School in Bangalore | Admissions Open 2025–26 | SKEI",
+    title: "Best CBSE School in Bangalore | Admissions Open 2026–27 | SKEI",
     description:
-      "Enrol your child at SKEI — ranked top CBSE school near Queens Road, Vasanth Nagar. 90+ years of excellence. Nursery to Grade 10. Book a free school visit today.",
+      "Enrol your child at SKEI, a top-ranked CBSE school near Queens Road, Vasanth Nagar. 95 years of excellence. Nursery to Grade 10. Book a free school visit today.",
     url: "https://skei.edu.in",
-    siteName: "SKEI Bengaluru",
+    siteName: "SKEI Bangalore",
     images: [
       {
         url: "/logo.png",
@@ -36,8 +37,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Best CBSE School in Bangalore | Admissions Open 2025–26 | SKEI",
-    description: "Enrol your child at SKEI — ranked top CBSE school near Queens Road, Vasanth Nagar. 90+ years of excellence.",
+    title: "Best CBSE School in Bangalore | Admissions Open 2026–27 | SKEI",
+    description:
+      "Enrol your child at SKEI, a top-ranked CBSE school near Queens Road, Vasanth Nagar. 95 years of excellence.",
     images: ["/logo.png"],
   },
   robots: {
@@ -53,12 +55,24 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${lora.variable} ${jetbrainsMono.variable} ${caveat.variable}`}>
-      <body className="grain antialiased">{children}</body>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${inter.variable} ${lora.variable} ${jetbrainsMono.variable} ${caveat.variable}`}
+    >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=localStorage.getItem('theme');var d=s?s==='dark':matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.classList.toggle('dark',d);}catch(e){}})();`,
+          }}
+        />
+      </head>
+      <body className="grain antialiased">
+        {children}
+        <Toaster richColors position="bottom-center" />
+      </body>
     </html>
   );
 }

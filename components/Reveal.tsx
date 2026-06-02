@@ -1,11 +1,9 @@
 "use client";
 
 import { motion, type Variants } from "framer-motion";
-import type { ReactNode } from "react";
+import type { ReactNode, CSSProperties } from "react";
+import { EASE } from "@/lib/animations";
 
-const EASE = [0.2, 0, 0, 1] as const;
-
-/* Single element: fade + slide up when scrolled into view (once). */
 export function Reveal({
   children,
   className,
@@ -19,7 +17,7 @@ export function Reveal({
   delay?: number;
   y?: number;
   as?: "div" | "section" | "li" | "span";
-  style?: React.CSSProperties;
+  style?: CSSProperties;
 }) {
   const MotionTag = motion[as];
   return (
@@ -38,9 +36,7 @@ export function Reveal({
 
 const staggerParent: Variants = {
   hidden: {},
-  show: {
-    transition: { staggerChildren: 0.1, delayChildren: 0.05 },
-  },
+  show: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } },
 };
 
 const staggerChild: Variants = {
@@ -48,7 +44,6 @@ const staggerChild: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } },
 };
 
-/* Container that staggers its <StaggerItem> children into view. */
 export function Stagger({
   children,
   className,
@@ -58,7 +53,7 @@ export function Stagger({
   children: ReactNode;
   className?: string;
   as?: "div" | "ul" | "section";
-  style?: React.CSSProperties;
+  style?: CSSProperties;
 }) {
   const MotionTag = motion[as];
   return (

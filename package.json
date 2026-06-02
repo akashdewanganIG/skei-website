@@ -6,20 +6,28 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint && biome lint .",
+    "format": "biome format --write ."
   },
   "dependencies": {
     "@remixicon/react": "^4.9.0",
+    "@types/react-google-recaptcha": "^2.1.9",
     "framer-motion": "^12.0.0",
     "next": "^15.1.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-google-recaptcha": "^3.1.0",
+    "react-select": "^5.10.2",
+    "sonner": "^2.0.7"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.16",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.7",
     "tailwindcss": "^4.0.0",
     "typescript": "^5"
   }

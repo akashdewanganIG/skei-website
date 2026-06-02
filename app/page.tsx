@@ -1,12 +1,12 @@
-import Academics from "@/components/Academics";
-import FAQ from "@/components/FAQ";
-import Hero from "@/components/Hero";
-import CampusVideo from "@/components/CampusVideo";
-import Nav from "@/components/Nav";
-import Footer from "@/components/Footer";
-import Testimonials from "@/components/Testimonials";
-import TrustStrip from "@/components/TrustStrip";
-import Gallery from "@/components/Gallery";
+import Academics from "@/components/sections/academics";
+import FAQ from "@/components/sections/faq";
+import Hero from "@/components/sections/hero";
+import CampusVideo from "@/components/sections/campus-video";
+import Navbar from "@/components/layout/navbar";
+import Footer from "@/components/layout/footer";
+import AlumniSpeak from "@/components/sections/alumni-speak";
+import TrustStrip from "@/components/sections/trust-strip";
+import Gallery from "@/components/sections/gallery";
 
 export default function Home() {
   return (
@@ -18,8 +18,7 @@ export default function Home() {
         Skip to content
       </a>
 
-
-      <Nav />
+      <Navbar />
 
       <main>
         <Hero />
@@ -28,7 +27,7 @@ export default function Home() {
         <Academics />
         <Gallery />
         <FAQ />
-        <Testimonials />
+        <AlumniSpeak />
       </main>
 
       <Footer />
