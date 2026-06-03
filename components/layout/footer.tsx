@@ -66,7 +66,7 @@ export default function Footer() {
                 onClick={() => scrollToId(ENQUIRY_ID)}
                 className="cursor-pointer rounded-md bg-clay px-6 py-2.5 text-[0.85rem] font-semibold text-white shadow-soft transition-all duration-300 hover:-translate-y-[1px] hover:bg-clay-deep active:translate-y-0"
               >
-                Enroll Now
+                Enroll Now!
               </button>
             </div>
           </div>

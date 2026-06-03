@@ -79,7 +79,7 @@ export default function Navbar() {
                 onClick={() => goTo(ENQUIRY_ID)}
                 className="ml-1 hidden cursor-pointer items-center justify-center rounded-md bg-clay px-5 py-2.5 text-[0.85rem] font-semibold text-white shadow-soft transition-all duration-300 hover:-translate-y-[1px] hover:bg-clay-deep active:translate-y-0 lg:flex"
               >
-                Enroll Now
+                Enroll Now!
               </button>
 
               <button
@@ -87,7 +87,7 @@ export default function Navbar() {
                 onClick={() => goTo(ENQUIRY_ID)}
                 className="cursor-pointer rounded-md bg-clay px-4 py-2 text-[0.85rem] font-semibold text-white shadow-soft transition-colors hover:bg-clay-deep lg:hidden"
               >
-                Enroll
+                Enroll Now!
               </button>
               <button
                 type="button"
