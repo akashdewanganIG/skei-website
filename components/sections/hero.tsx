@@ -6,7 +6,7 @@ import { motion, useAnimationControls } from "framer-motion";
 import EnquiryForm from "../enquiry-form";
 import { EASE, containerVariants, itemVariants } from "@/lib/animations";
 import { ENQUIRY_ID, ENQUIRY_FOCUS_EVENT } from "@/lib/constants";
-import heroBg from "@/public/school.jpg";
+import heroBg from "@/public/gallery/sports-field.jpg";
 
 const STATS: { value: string; prefix?: string; accent?: string; label: string }[] = [
   { value: "1931", label: "Established" },

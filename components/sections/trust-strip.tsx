@@ -11,7 +11,7 @@ const ITEMS = [
   "NEP 2020 Aligned Pedagogy",
   "360° STEAM Learning",
   "Bangalore's Greenest Campus",
-  "100-Year-Old Heritage Trees",
+  "100-Year-Old Heritage",
 ];
 
 const LOOP = Array.from({ length: 6 }).flatMap((_, rep) =>
