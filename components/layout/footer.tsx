@@ -38,8 +38,9 @@ export default function Footer() {
             </button>
             <div className="flex flex-col gap-3 max-w-xs text-[13px] leading-relaxed text-ivory/60">
               <p>
-                Smt. Kamalabai Educational Institution (SKEI) is a CBSE day school in Bangalore,
-                from Nursery to Grade 10, founded by the VST Group.
+                Smt. Kamalabai Educational Institution (SKEI) is a CBSE day school in Vasanth
+                Nagar, near Queens Road, Bangalore — from Nursery to Grade 10, founded by the VST
+                Group. Admissions open for 2026–27.
               </p>
               <p>
                 A green, heritage campus shaded by century-old trees, where learning itself is the

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { RiStarFill } from "@remixicon/react";
 
 const ITEMS = [
+  "Admissions Open 2026–27",
   "CBSE Affiliated Curriculum",
   "NEP 2020 Aligned Pedagogy",
   "360° STEAM Learning",

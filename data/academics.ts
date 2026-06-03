@@ -10,7 +10,7 @@ export const PROGRAMS: Program[] = [
   {
     title: "Early Years",
     subtitle: "Nursery–Prep",
-    desc: "Fostering social and cognitive development through joyful, play-based exploration.",
+    desc: "Our nursery, kindergarten, and preschool years foster social and cognitive growth through joyful, play-based exploration.",
     icon: RiStarSmileLine,
   },
   {

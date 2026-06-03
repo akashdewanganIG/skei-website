@@ -36,8 +36,9 @@ export default function Hero() {
               variants={itemVariants}
               className="mt-5 max-w-xl text-base leading-relaxed text-balance text-muted sm:mt-6 sm:text-[1.05rem]"
             >
-              Set in the heart of Bangalore, shaded by 100-year-old trees, SKEI pairs a rigorous
-              CBSE curriculum with hands-on, whole-child learning.
+              Set in Vasanth Nagar, near Queens Road in the heart of Bangalore and shaded by
+              100-year-old trees, SKEI pairs a rigorous CBSE curriculum with hands-on, whole-child
+              learning. Admissions are open for 2026–27, from Nursery to Grade 10.
             </motion.p>
 
             <motion.dl
