@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import logoLight from "@/public/logo-light.png";
 import { NAV_LINKS } from "../../data/nav";
-import { CONTACT, SOCIALS, ENQUIRY_ID } from "@/lib/constants";
-import { scrollToId } from "@/lib/utils";
+import { CONTACT, SOCIALS } from "@/lib/constants";
+import { scrollToId, focusEnquiry } from "@/lib/utils";
 
 const ACADEMIC_LINKS = [
   "Early Years (Nursery–Prep)",
@@ -20,59 +21,49 @@ export default function Footer() {
   return (
     <footer className="bg-ink text-ivory rounded-t-[2rem] sm:rounded-t-[3rem] mt-[-3rem] sm:mt-[-4rem] relative z-20 shadow-[0_-20px_50px_-15px_rgba(0,0,0,0.3)]">
       <div className="mx-auto max-w-7xl px-4 pt-12 pb-8 sm:px-6">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.2fr] lg:gap-8">
-          <div className="flex flex-col gap-5">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.2fr] lg:gap-x-8 lg:gap-y-8">
+          <div className="flex flex-col gap-5 lg:row-span-2">
             <button
               type="button"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              className="relative h-[48px] w-[180px] mb-2 text-left cursor-pointer transition-opacity hover:opacity-80"
+              className="mb-2 w-fit cursor-pointer transition-opacity hover:opacity-80"
               aria-label="SKEI home"
             >
               <Image
-                src="/logo.png"
-                alt="Best CBSE School in Bangalore - SKEI Admissions"
-                fill
-                className="object-contain object-left"
-                sizes="180px"
+                src={logoLight}
+                alt="SKEI - Best CBSE School in Bangalore"
+                unoptimized
+                className="h-12 w-auto"
               />
             </button>
             <div className="flex flex-col gap-3 max-w-xs text-[13px] leading-relaxed text-ivory/60">
               <p>
                 Smt. Kamalabai Educational Institution (SKEI) is a CBSE day school in Vasanth
-                Nagar, near Queens Road, Bangalore — from Nursery to Grade 10, founded by the VST
-                Group. Admissions open for 2026–27.
+                Nagar, near Queens Road, Bangalore, offering classes from Nursery to Grade 10,
+                founded by the VST Group. Admissions open for 2026–27.
               </p>
               <p>
                 A green, heritage campus shaded by century-old trees, where learning itself is the
                 goal.
               </p>
             </div>
-            <div className="flex max-w-xs items-center justify-between gap-3 pt-1">
-              <div className="flex gap-3">
-                {SOCIALS.map(({ label, href, icon: Icon }) => (
-                  <a
-                    key={label}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={label}
-                    className="grid h-9 w-9 place-items-center rounded-full border border-ivory/20 text-ivory/80 transition-all hover:scale-110 hover:bg-clay hover:border-clay hover:text-white"
-                  >
-                    <Icon className="h-[18px] w-[18px]" aria-hidden />
-                  </a>
-                ))}
-              </div>
-              <button
-                type="button"
-                onClick={() => scrollToId(ENQUIRY_ID)}
-                className="cursor-pointer rounded-md bg-clay px-6 py-2.5 text-[0.85rem] font-semibold text-white shadow-soft transition-all duration-300 hover:-translate-y-[1px] hover:bg-clay-deep active:translate-y-0"
-              >
-                Enroll Now!
-              </button>
+            <div className="flex gap-3 pt-1 lg:mt-auto">
+              {SOCIALS.map(({ label, href, icon: Icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="grid h-9 w-9 place-items-center rounded-full border border-ivory/20 text-ivory/80 transition-all hover:scale-110 hover:bg-clay hover:border-clay hover:text-white"
+                >
+                  <Icon className="h-[18px] w-[18px]" aria-hidden />
+                </a>
+              ))}
             </div>
           </div>
 
-          <nav aria-label="Academics Menu">
+          <nav aria-label="Academics Menu" className="lg:col-start-2 lg:row-start-1">
             <h3 className={footerHeadingClass}>Academics</h3>
             <ul className="mt-4 flex flex-col gap-2.5">
               {ACADEMIC_LINKS.map((label) => (
@@ -89,7 +80,7 @@ export default function Footer() {
             </ul>
           </nav>
 
-          <nav aria-label="Quick Links Menu">
+          <nav aria-label="Quick Links Menu" className="lg:col-start-3 lg:row-start-1">
             <h3 className={footerHeadingClass}>Quick Links</h3>
             <ul className="mt-4 flex flex-col gap-2.5">
               {NAV_LINKS.map((n) => (
@@ -106,7 +97,7 @@ export default function Footer() {
             </ul>
           </nav>
 
-          <div>
+          <div className="lg:col-start-4 lg:row-start-1 lg:row-span-2">
             <h3 className={footerHeadingClass}>Visit Us</h3>
             <address className="mt-4 flex flex-col gap-3 text-[13px] not-italic text-ivory/60">
               <span className="leading-relaxed">
@@ -132,6 +123,17 @@ export default function Footer() {
                 {CONTACT.email}
               </a>
             </address>
+          </div>
+
+          {/* Enroll CTA — below Academics + Quick Links on desktop, last when stacked */}
+          <div className="lg:col-start-2 lg:col-span-2 lg:row-start-2">
+            <button
+              type="button"
+              onClick={focusEnquiry}
+              className="w-full cursor-pointer rounded-md bg-clay px-6 py-2.5 text-[0.85rem] font-semibold text-white shadow-soft transition-all duration-300 hover:-translate-y-[1px] hover:bg-clay-deep active:translate-y-0"
+            >
+              Enroll Now!
+            </button>
           </div>
         </div>
 

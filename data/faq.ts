@@ -2,16 +2,20 @@ import type { Faq } from "../types/faq";
 
 export const FAQS: Faq[] = [
   {
+    q: "What makes SKEI one of the best CBSE schools in Bangalore?",
+    a: "SKEI pairs a rigorous CBSE curriculum with hands-on, whole-child learning on a green heritage campus established in 1931, which is what makes it one of the best CBSE schools in Bangalore. From nursery to Grade 10, children learn by doing rather than by rote.",
+  },
+  {
     q: "What curriculum does SKEI follow?",
     a: "We follow a rigorous CBSE curriculum brought to life through SOUL (SKEI's Outstanding Unique Learning), our signature methodology built on four pillars: Maker Spaces, Ideas in Cloud, Performing Arts, and Real-Life Learning. Students learn through hands-on experience rather than rote memorisation.",
   },
   {
-    q: "What is the CBSE admission process in Bangalore for 2026–27?",
-    a: "Admissions are open for the 2026–27 academic year. The process is simple: begin by filling out the online inquiry form. We will then invite you for a personalized campus visit and a friendly, age-appropriate interaction with your child. Once confirmed, enrollment can be completed.",
+    q: "What is the CBSE school admission process in Bangalore for 2026–27?",
+    a: "Admissions for the 2026–27 academic year are open. The process is simple: start with the online enquiry form, then visit us for a friendly, age-appropriate interaction with your child before enrollment is confirmed. Our team will guide you through every step.",
   },
   {
-    q: "Do you offer nursery and preschool admissions?",
-    a: "Yes. As one of the best preschools in Bangalore, SKEI welcomes admissions from nursery and kindergarten onwards. Our play-based Early Years program nurtures young learners before they progress through our CBSE primary, middle, and secondary school.",
+    q: "Do you offer nursery, preschool, and play school admissions?",
+    a: "Yes. As one of the best preschools and nursery schools in Bangalore, SKEI welcomes nursery, kindergarten, and play school admissions. Our warm, play-based Early Years program nurtures young learners before they progress into our CBSE primary, middle, and secondary school.",
   },
   {
     q: "What extracurricular facilities are available?",
@@ -23,6 +27,6 @@ export const FAQS: Faq[] = [
   },
   {
     q: "Where is the school located?",
-    a: "If you are looking for CBSE schools near Queens Road or schools in Vasanth Nagar, SKEI is centrally located on Edward Road, Off Queens Road, in Vasanth Nagar, Bangalore — a green, eco-friendly heritage campus established in 1931.",
+    a: "SKEI is centrally located on Edward Road, just off Queens Road in Vasanth Nagar, Bangalore. One of the city's oldest schools, it sits on a green, eco-friendly heritage campus established in 1931.",
   },
 ];

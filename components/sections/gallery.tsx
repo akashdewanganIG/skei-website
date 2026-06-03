@@ -170,15 +170,15 @@ export default function Gallery() {
   return (
     <section
       id="gallery"
-      className="relative z-30 overflow-hidden bg-bg pb-18 pt-9 sm:pb-24 sm:pt-12"
+      className="relative z-30 overflow-hidden bg-bg pb-8 pt-9 sm:pb-12 sm:pt-12"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Reveal className="mb-16 flex flex-col items-center text-center">
           <div className="mb-4 text-eyebrow text-clay">Gallery</div>
           <h2 className="text-h2 text-fg">Around the School</h2>
           <p className="mt-4 max-w-2xl text-balance text-base text-muted sm:text-[1.05rem]">
-            A glimpse into the vibrant environment where learning, play, and growth happen every
-            day.
+            A glimpse into daily life at SKEI, a top CBSE school in Bangalore, where learning, play,
+            and growth happen every day.
           </p>
         </Reveal>
 
@@ -280,6 +280,7 @@ export default function Gallery() {
           {IMAGES.length > MOBILE_VISIBLE_COUNT && (
             <div className="mt-4 flex justify-center">
               <button
+                type="button"
                 onClick={() => setShowAll(!showAll)}
                 className="text-[0.95rem] font-medium text-clay underline underline-offset-4 decoration-clay/40 transition-all hover:decoration-clay"
               >

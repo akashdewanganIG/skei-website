@@ -25,7 +25,11 @@ const schoolJsonLd = {
     postalCode: "560052",
     addressCountry: "IN",
   },
-  areaServed: { "@type": "City", name: "Bangalore" },
+  areaServed: [
+    { "@type": "City", name: "Bangalore" },
+    { "@type": "Place", name: "Vasanth Nagar, Bangalore" },
+    { "@type": "Place", name: "Queens Road, Bangalore" },
+  ],
   sameAs: SOCIALS.map((s) => s.href),
 };
 
@@ -48,6 +52,7 @@ export const metadata: Metadata = {
     "nursery admissions Bangalore",
     "best preschool in Bangalore",
     "nursery schools in Bangalore",
+    "Montessori school near me",
     "kindergarten near me",
     "play school near me",
     "SKEI",

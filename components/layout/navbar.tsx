@@ -2,14 +2,12 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { RiMenu3Line, RiCloseLine } from "@remixicon/react";
-import Image from "next/image";
 import { useState, useCallback } from "react";
-import { useScrollState } from "../../hooks/use-scroll-state";
 import { NAV_LINKS } from "../../data/nav";
 import { EASE } from "@/lib/animations";
-import { ENQUIRY_ID } from "@/lib/constants";
-import { scrollToId } from "@/lib/utils";
+import { scrollToId, focusEnquiry } from "@/lib/utils";
 import { ThemeToggle } from "./theme-toggle";
+import { BrandLogo } from "../ui/logo";
 
 function Logo() {
   return (
@@ -19,21 +17,12 @@ function Logo() {
       className="flex cursor-pointer items-center transition-opacity hover:opacity-80"
       aria-label="SKEI home"
     >
-      <Image
-        src="/logo.png"
-        alt="Best CBSE School in Bangalore - SKEI Admissions"
-        width={0}
-        height={0}
-        sizes="125px"
-        priority
-        className="h-[32px] w-auto sm:h-[34px]"
-      />
+      <BrandLogo priority className="h-[32px] w-auto sm:h-[34px]" />
     </button>
   );
 }
 
 export default function Navbar() {
-  const { scrolled, hidden } = useScrollState();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const goTo = useCallback((id: string) => {
@@ -41,17 +30,15 @@ export default function Navbar() {
     setMenuOpen(false);
   }, []);
 
-  const solid = scrolled || menuOpen;
-  const bar = `pointer-events-auto rounded-xl transition-[background-color,box-shadow] duration-200 ${
-    solid ? "bg-surface shadow-soft ring-1 ring-fg/5" : "bg-transparent"
-  }`;
+  const enroll = useCallback(() => {
+    focusEnquiry();
+    setMenuOpen(false);
+  }, []);
+
+  const bar = "pointer-events-auto rounded-xl bg-surface shadow-soft ring-1 ring-fg/5";
 
   return (
-    <motion.header
-      animate={{ y: hidden && !menuOpen ? "-110%" : "0%" }}
-      transition={{ duration: 0.3, ease: EASE }}
-      className="pointer-events-none fixed inset-x-0 top-0 z-50"
-    >
+    <header className="pointer-events-none fixed inset-x-0 top-0 z-50">
       <div className="mx-auto max-w-[90rem] px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
         <div className={`${bar} flex flex-col overflow-hidden`}>
           <div className="flex items-center justify-between gap-3 py-1.5 pl-4 pr-1.5 sm:pl-5">
@@ -76,7 +63,7 @@ export default function Navbar() {
 
               <button
                 type="button"
-                onClick={() => goTo(ENQUIRY_ID)}
+                onClick={enroll}
                 className="ml-1 hidden cursor-pointer items-center justify-center rounded-md bg-clay px-5 py-2.5 text-[0.85rem] font-semibold text-white shadow-soft transition-all duration-300 hover:-translate-y-[1px] hover:bg-clay-deep active:translate-y-0 lg:flex"
               >
                 Enroll Now!
@@ -84,7 +71,7 @@ export default function Navbar() {
 
               <button
                 type="button"
-                onClick={() => goTo(ENQUIRY_ID)}
+                onClick={enroll}
                 className="cursor-pointer rounded-md bg-clay px-4 py-2 text-[0.85rem] font-semibold text-white shadow-soft transition-colors hover:bg-clay-deep lg:hidden"
               >
                 Enroll Now!
@@ -145,6 +132,6 @@ export default function Navbar() {
           </AnimatePresence>
         </div>
       </div>
-    </motion.header>
+    </header>
   );
 }

@@ -1,19 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { RiLockPasswordLine, RiUserLine, RiArrowRightLine, RiLoader4Line } from "@remixicon/react";
 import { EASE } from "@/lib/animations";
-import logo from "@/public/logo.png";
+import { BrandLogo } from "@/components/ui/logo";
 
 const inputBase =
   "w-full rounded-xl border border-fg/20 bg-bg/60 py-2.5 pl-10 pr-3.5 text-sm text-fg placeholder:text-muted/60 transition-all duration-200 focus:border-clay/50 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-clay/30";
 
 export function LoginForm() {
-  const router = useRouter();
   const params = useSearchParams();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -35,15 +33,17 @@ export function LoginForm() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         toast.error(data.error || "Could not sign in.");
+        setSubmitting(false);
         return;
       }
       toast.success(`Welcome back, ${data.user?.name ?? "there"}.`);
       const from = params.get("from");
-      router.replace(from?.startsWith("/skei-admin") ? from : "/skei-admin");
-      router.refresh();
+      const target = from?.startsWith("/skei-admin") ? from : "/skei-admin";
+      // Hard navigation so the freshly-set httpOnly session cookie is sent on
+      // the next request and middleware lets us through to the dashboard.
+      window.location.assign(target);
     } catch {
       toast.error("Network error. Please try again.");
-    } finally {
       setSubmitting(false);
     }
   };
@@ -57,7 +57,7 @@ export function LoginForm() {
         className="w-full max-w-sm"
       >
         <div className="mb-8 flex flex-col items-center text-center">
-          <Image src={logo} alt="SKEI" width={64} height={64} className="h-16 w-auto" priority />
+          <BrandLogo priority className="mx-auto h-16 w-auto" />
           <div className="mt-5 text-eyebrow text-clay">SKEI Admin</div>
           <h1 className="mt-2 font-display text-2xl text-fg">Sign in to continue</h1>
           <p className="mt-2 text-sm text-muted">Leads dashboard for staff &amp; administrators.</p>

@@ -4,7 +4,7 @@ import type { Role, Session } from "@/types/lead";
 /**
  * Password hashing/verification using Node's scrypt. Runs only inside the
  * Node.js runtime (the login route handler). Hashes are stored in env vars as
- * `scrypt$<saltHex>$<hashHex>` — generate them with `npm run hash-password`.
+ * `scrypt$<saltHex>$<hashHex>`; generate them with `npm run hash-password`.
  */
 
 const KEYLEN = 64;

@@ -1,5 +1,5 @@
 /**
- * SKEI Leads — Google Apps Script backend for the admin dashboard.
+ * SKEI Leads - Google Apps Script backend for the admin dashboard.
  *
  * This single script does two jobs:
  *   1. Receives new enquiries from the public website (unchanged behaviour),

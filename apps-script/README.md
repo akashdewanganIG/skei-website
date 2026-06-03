@@ -1,7 +1,7 @@
-# SKEI Admin — Leads Dashboard
+# SKEI Admin: Leads Dashboard
 
 A private dashboard at **`/skei-admin`** for viewing and managing enquiry leads.
-There is intentionally **no link to it anywhere on the public site** — reach it by
+There is intentionally **no link to it anywhere on the public site**. Reach it by
 typing the URL.
 
 ## Roles
@@ -18,8 +18,8 @@ typing the URL.
 1. Open your leads Google Sheet → **Extensions → Apps Script**.
 2. Paste the contents of [`Code.gs`](./Code.gs), replacing what's there. Save.
 3. **Project Settings → Script properties** → add:
-   - `API_SECRET` — any long random string (you'll reuse it as `LEADS_API_SECRET`).
-   - `SHEET_NAME` — optional; the tab name holding leads (defaults to the first tab).
+   - `API_SECRET`: any long random string (you'll reuse it as `LEADS_API_SECRET`).
+   - `SHEET_NAME`: optional; the tab name holding leads (defaults to the first tab).
 4. **Deploy → New deployment → Web app**
    - _Execute as:_ **Me**
    - _Who has access:_ **Anyone**
@@ -45,8 +45,8 @@ Fill in `.env` (see [`.env.example`](../.env.example)):
 
 - `AUTH_SECRET`, `ADMIN_PASSWORD_HASH`, `STAFF_PASSWORD_HASH`
 - `ADMIN_USERNAME` / `STAFF_USERNAME` (and optional display names)
-- `LEADS_SCRIPT_URL` — the `/exec` URL from step 1
-- `LEADS_API_SECRET` — must equal the Apps Script `API_SECRET`
+- `LEADS_SCRIPT_URL`: the `/exec` URL from step 1
+- `LEADS_API_SECRET`: must equal the Apps Script `API_SECRET`
 
 On Vercel, add the same variables under **Project → Settings → Environment Variables**.
 
@@ -57,7 +57,7 @@ but only the remark field is editable for them.
 
 ## Security notes
 
-- Session is a signed, httpOnly cookie (HS256) — verified in middleware and in every
+- Session is a signed, httpOnly cookie (HS256), verified in middleware and in every
   API route. Admin-only actions are re-checked server-side, never trusting the client.
 - The shared `LEADS_API_SECRET` stays server-side; it is never sent to the browser.
 - `/skei-admin` and `/api` are disallowed in `robots.txt` and marked `noindex`.

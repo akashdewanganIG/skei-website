@@ -1,87 +1,96 @@
-import { LEAD_STATUSES, type Lead, type LeadStatus } from "@/types/lead";
+import { desc, eq } from "drizzle-orm";
+import { db } from "./db";
+import { type LeadRow, leads } from "./db/schema";
+import type { Lead } from "@/types/lead";
 
 /**
- * Server-side bridge to the Google Apps Script that owns the leads sheet.
- * The shared secret never reaches the browser — these helpers run only on the
- * server (route handlers / server components).
+ * Server-side data access for leads, backed by PostgreSQL (Drizzle ORM).
+ * Runs only on the server (route handlers / server components).
  */
 
-function getConfig() {
-  const url = process.env.LEADS_SCRIPT_URL;
-  const secret = process.env.LEADS_API_SECRET;
-  if (!url || !secret) {
-    throw new Error("LEADS_SCRIPT_URL and LEADS_API_SECRET must be set.");
-  }
-  return { url, secret };
+const TZ = "Asia/Kolkata";
+
+function parts(date: Date) {
+  const p = new Intl.DateTimeFormat("en-GB", {
+    timeZone: TZ,
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+  const get = (type: string) => p.find((x) => x.type === type)?.value ?? "";
+  return { d: get("day"), mo: get("month"), y: get("year"), h: get("hour"), mi: get("minute") };
 }
 
-function coerceStatus(value: unknown): LeadStatus {
-  return LEAD_STATUSES.includes(value as LeadStatus) ? (value as LeadStatus) : "New";
+/** "dd-MM-yyyy" in IST, matching the previous spreadsheet format. */
+function formatDate(date: Date): string {
+  const { d, mo, y } = parts(date);
+  return `${d}-${mo}-${y}`;
 }
 
-function normalize(raw: Record<string, unknown>): Lead {
-  const get = (key: string) => (raw[key] == null ? "" : String(raw[key]));
+/** "dd-MM-yyyy HH:mm" in IST. */
+function formatDateTime(date: Date): string {
+  const { d, mo, y, h, mi } = parts(date);
+  return `${d}-${mo}-${y} ${h}:${mi}`;
+}
+
+/** Map a DB row to the Lead shape consumed by the dashboard/API. */
+function toLead(row: LeadRow): Lead {
   return {
-    id: get("id"),
-    submit_date: get("submit_date"),
-    student_name: get("student_name"),
-    grade: get("grade"),
-    dob: get("dob"),
-    gender: get("gender"),
-    parent_name: get("parent_name"),
-    mobile_no: get("mobile_no"),
-    email: get("email"),
-    comment: get("comment"),
-    status: coerceStatus(raw["status"]),
-    remark: get("remark"),
-    updated_at: get("updated_at"),
-    updated_by: get("updated_by"),
+    id: row.id,
+    submit_date: formatDate(row.createdAt),
+    student_name: row.studentName,
+    grade: row.grade,
+    dob: row.dob,
+    gender: row.gender,
+    parent_name: row.parentName,
+    mobile_no: row.mobileNo,
+    email: row.email,
+    comment: row.comment,
+    status: row.status,
+    remark: row.remark,
+    updated_at: row.updatedAt ? formatDateTime(row.updatedAt) : "",
+    updated_by: row.updatedBy,
   };
 }
 
-type ScriptResponse = {
-  ok: boolean;
-  error?: string;
-  leads?: Record<string, unknown>[];
-  lead?: Record<string, unknown>;
-};
-
-async function callScript(
-  init: { method: "GET"; params: Record<string, string> } | { method: "POST"; body: object },
-): Promise<ScriptResponse> {
-  const { url, secret } = getConfig();
-  let response: Response;
-
-  if (init.method === "GET") {
-    const query = new URLSearchParams({ ...init.params, secret });
-    response = await fetch(`${url}?${query.toString()}`, { cache: "no-store" });
-  } else {
-    response = await fetch(url, {
-      method: "POST",
-      // text/plain avoids a CORS preflight on the Apps Script endpoint.
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ ...init.body, secret }),
-      cache: "no-store",
-      redirect: "follow",
-    });
-  }
-
-  if (!response.ok) {
-    throw new Error(`Leads service returned ${response.status}.`);
-  }
-
-  const data = (await response.json()) as ScriptResponse;
-  if (!data.ok) {
-    throw new Error(data.error || "Leads service reported an error.");
-  }
-  return data;
-}
+/** Fields a public enquiry may set. */
+type EnquiryInput = Partial<
+  Pick<
+    Lead,
+    | "student_name"
+    | "grade"
+    | "dob"
+    | "gender"
+    | "parent_name"
+    | "mobile_no"
+    | "email"
+    | "comment"
+  >
+>;
 
 export async function listLeads(): Promise<Lead[]> {
-  const data = await callScript({ method: "GET", params: { action: "list" } });
-  const leads = (data.leads ?? []).map(normalize);
-  // Newest first by submit date, then by id as a stable tiebreaker.
-  return leads.sort((a, b) => b.id.localeCompare(a.id));
+  const rows = await db.select().from(leads).orderBy(desc(leads.createdAt));
+  return rows.map(toLead);
+}
+
+export async function createLead(input: EnquiryInput): Promise<Lead> {
+  const [row] = await db
+    .insert(leads)
+    .values({
+      studentName: input.student_name ?? "",
+      grade: input.grade ?? "",
+      dob: input.dob ?? "",
+      gender: input.gender ?? "",
+      parentName: input.parent_name ?? "",
+      mobileNo: input.mobile_no ?? "",
+      email: input.email ?? "",
+      comment: input.comment ?? "",
+    })
+    .returning();
+  return toLead(row);
 }
 
 export async function updateLead(
@@ -89,14 +98,27 @@ export async function updateLead(
   patch: Partial<Omit<Lead, "id">>,
   updatedBy: string,
 ): Promise<Lead> {
-  const data = await callScript({
-    method: "POST",
-    body: { action: "update", id, patch, updated_by: updatedBy },
-  });
-  if (!data.lead) throw new Error("Lead not found.");
-  return normalize(data.lead);
+  const set: Partial<typeof leads.$inferInsert> = {
+    updatedAt: new Date(),
+    updatedBy,
+  };
+
+  if (patch.status !== undefined) set.status = patch.status;
+  if (patch.remark !== undefined) set.remark = patch.remark;
+  if (patch.student_name !== undefined) set.studentName = patch.student_name;
+  if (patch.grade !== undefined) set.grade = patch.grade;
+  if (patch.dob !== undefined) set.dob = patch.dob;
+  if (patch.gender !== undefined) set.gender = patch.gender;
+  if (patch.parent_name !== undefined) set.parentName = patch.parent_name;
+  if (patch.mobile_no !== undefined) set.mobileNo = patch.mobile_no;
+  if (patch.email !== undefined) set.email = patch.email;
+  if (patch.comment !== undefined) set.comment = patch.comment;
+
+  const [row] = await db.update(leads).set(set).where(eq(leads.id, id)).returning();
+  if (!row) throw new Error("Lead not found.");
+  return toLead(row);
 }
 
 export async function deleteLead(id: string): Promise<void> {
-  await callScript({ method: "POST", body: { action: "delete", id } });
+  await db.delete(leads).where(eq(leads.id, id));
 }

@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import {
@@ -13,16 +12,32 @@ import {
   RiUserStarLine,
   RiTeamLine,
   RiInboxLine,
+  RiCloseCircleLine,
 } from "@remixicon/react";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Select } from "@/components/ui/select";
 import { EASE } from "@/lib/animations";
 import { LEAD_STATUSES, type Lead, type Session } from "@/types/lead";
-import logo from "@/public/logo.png";
+import { BrandLogo } from "@/components/ui/logo";
 import { STATUS_META, StatusBadge, hexA } from "./status";
 import { LeadDetail } from "./lead-detail";
 
 type Filter = "all" | (typeof LEAD_STATUSES)[number];
+
+/** Two-letter monogram from a name, e.g. "Asha Rao" → "AR". */
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function greetingFor(date = new Date()): string {
+  const h = date.getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
 
 function toCsv(leads: Lead[]): string {
   const columns: (keyof Lead)[] = [
@@ -57,6 +72,8 @@ export function Dashboard({
 }) {
   const router = useRouter();
   const isAdmin = session.role === "admin";
+  const greeting = useMemo(() => greetingFor(), []);
+  const firstName = session.name.split(/\s+/)[0];
 
   const [leads, setLeads] = useState<Lead[]>(initialLeads);
   const [search, setSearch] = useState("");
@@ -94,6 +111,14 @@ export function Dashboard({
     () => leads.find((l) => l.id === selectedId) ?? null,
     [leads, selectedId],
   );
+
+  const hasFilters = search.trim() !== "" || statusFilter !== "all" || gradeFilter !== "all";
+
+  const clearFilters = useCallback(() => {
+    setSearch("");
+    setStatusFilter("all");
+    setGradeFilter("all");
+  }, []);
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
@@ -170,26 +195,35 @@ export function Dashboard({
   }, [filtered]);
 
   return (
-    <div className="mx-auto min-h-dvh max-w-7xl px-4 pb-16 pt-5 sm:px-6 lg:px-8">
+    <div className="mx-auto min-h-dvh max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
       {/* Header */}
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-5">
+      <header className="sticky top-0 z-30 -mx-4 flex flex-wrap items-center justify-between gap-4 border-b border-line bg-bg/80 px-4 py-4 backdrop-blur-md sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
         <div className="flex items-center gap-3">
-          <Image src={logo} alt="SKEI" width={40} height={40} className="h-10 w-auto" priority />
+          <BrandLogo priority className="h-10 w-auto" />
           <div>
             <div className="font-display text-lg leading-none text-fg">Leads Dashboard</div>
-            <div className="mt-1 text-xs text-muted">Smt. Kamalabai Educational Institution</div>
+            <div className="mt-1 text-xs text-muted">
+              {greeting}, <span className="text-fg/80">{firstName}</span>
+            </div>
           </div>
         </div>
 
         <div className="flex items-center gap-2.5">
-          <div className="hidden items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 sm:flex">
-            {isAdmin ? (
-              <RiUserStarLine className="h-4 w-4 text-clay" />
-            ) : (
-              <RiTeamLine className="h-4 w-4 text-muted" />
-            )}
+          <div className="hidden items-center gap-2.5 rounded-full border border-line bg-surface py-1 pl-1 pr-3 shadow-soft sm:flex">
+            <span
+              className={`grid h-7 w-7 place-items-center rounded-full text-[0.7rem] font-bold ${
+                isAdmin ? "bg-clay/12 text-clay" : "bg-fg/[0.07] text-muted"
+              }`}
+            >
+              {initials(session.name)}
+            </span>
             <span className="text-xs font-medium text-fg">{session.name}</span>
-            <span className="rounded-full bg-clay/10 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-clay">
+            <span className="flex items-center gap-1 rounded-full bg-clay/10 px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-clay">
+              {isAdmin ? (
+                <RiUserStarLine className="h-3 w-3" />
+              ) : (
+                <RiTeamLine className="h-3 w-3" />
+              )}
               {session.role}
             </span>
           </div>
@@ -197,7 +231,7 @@ export function Dashboard({
           <button
             type="button"
             onClick={logout}
-            className="flex h-10 items-center gap-1.5 rounded-md border border-line bg-transparent px-3 text-sm text-fg/70 transition-colors hover:bg-fg/[0.06] hover:text-fg"
+            className="flex h-10 items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-sm text-fg/70 shadow-soft transition-colors hover:bg-fg/[0.06] hover:text-fg"
           >
             <RiLogoutBoxRLine className="h-[18px] w-[18px]" />
             <span className="hidden sm:inline">Logout</span>
@@ -208,17 +242,21 @@ export function Dashboard({
       {/* Stats */}
       <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <StatCard
+          index={0}
           label="Total leads"
           value={counts.total}
+          share={1}
           active={statusFilter === "all"}
-          color="#1f1a14"
+          color="#d9481e"
           onClick={() => setStatusFilter("all")}
         />
-        {LEAD_STATUSES.map((status) => (
+        {LEAD_STATUSES.map((status, i) => (
           <StatCard
             key={status}
+            index={i + 1}
             label={status}
             value={counts[status] ?? 0}
+            share={counts.total ? (counts[status] ?? 0) / counts.total : 0}
             active={statusFilter === status}
             color={STATUS_META[status].color}
             onClick={() => setStatusFilter((s) => (s === status ? "all" : status))}
@@ -266,13 +304,25 @@ export function Dashboard({
         )}
       </section>
 
-      <div className="mt-3 text-xs text-muted">
-        Showing {filtered.length} of {leads.length} leads
+      <div className="mt-3 flex items-center gap-3 text-xs text-muted">
+        <span>
+          Showing <span className="font-semibold text-fg">{filtered.length}</span> of {leads.length}{" "}
+          leads
+        </span>
+        {hasFilters && (
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium text-clay transition-colors hover:bg-clay/10"
+          >
+            <RiCloseCircleLine className="h-3.5 w-3.5" /> Clear filters
+          </button>
+        )}
       </div>
 
       {loadError && (
         <div className="mt-4 rounded-xl border border-clay/30 bg-clay/[0.06] px-4 py-3 text-sm text-clay-deep">
-          {loadError} — check the leads service configuration, then Refresh.
+          {loadError}. Check the leads service configuration, then Refresh.
         </div>
       )}
 
@@ -307,34 +357,54 @@ export function Dashboard({
 }
 
 function StatCard({
+  index,
   label,
   value,
+  share,
   color,
   active,
   onClick,
 }: {
+  index: number;
   label: string;
   value: number;
+  share: number;
   color: string;
   active: boolean;
   onClick: () => void;
 }) {
+  const isTotal = label === "Total leads";
+  const pct = Math.round(share * 100);
   return (
-    <button
+    <motion.button
       type="button"
       onClick={onClick}
-      className="rounded-2xl border bg-surface p-3.5 text-left shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: EASE, delay: index * 0.04 }}
+      className="group relative overflow-hidden rounded-2xl border bg-surface p-3.5 text-left shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift"
       style={{
         borderColor: active ? color : "var(--color-line)",
         backgroundColor: active ? hexA(color, 0.07) : undefined,
       }}
     >
       <div className="flex items-center gap-1.5">
-        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
-        <span className="truncate text-[0.7rem] font-medium text-muted">{label}</span>
+        <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: color }} />
+        <span className="truncate text-[0.7rem] font-medium capitalize text-muted">{label}</span>
       </div>
-      <div className="mt-1.5 font-display text-2xl text-fg">{value}</div>
-    </button>
+      <div className="mt-1.5 flex items-baseline justify-between gap-1">
+        <span className="font-display text-[1.75rem] leading-none text-fg">{value}</span>
+        {!isTotal && value > 0 && (
+          <span className="text-[0.65rem] font-semibold tabular-nums text-muted">{pct}%</span>
+        )}
+      </div>
+      <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-fg/[0.07]">
+        <div
+          className="h-full rounded-full transition-[width] duration-500 ease-out"
+          style={{ width: `${Math.max(share * 100, value > 0 ? 6 : 0)}%`, backgroundColor: color }}
+        />
+      </div>
+    </motion.button>
   );
 }
 
@@ -353,7 +423,7 @@ function LeadTable({
     <div className="mt-4 hidden overflow-hidden rounded-2xl border border-line bg-surface shadow-soft lg:block">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-line text-left text-xs uppercase tracking-wide text-muted">
+          <tr className="border-b border-line bg-bg/40 text-left text-[0.68rem] uppercase tracking-wider text-muted">
             <th className="px-4 py-3 font-semibold">Student</th>
             <th className="px-4 py-3 font-semibold">Grade</th>
             <th className="px-4 py-3 font-semibold">Parent</th>
@@ -364,35 +434,50 @@ function LeadTable({
           </tr>
         </thead>
         <tbody>
-          {leads.map((lead) => (
-            <tr
-              key={lead.id}
-              onClick={() => onOpen(lead.id)}
-              className="cursor-pointer border-b border-line/60 last:border-0 transition-colors hover:bg-bg/60"
-            >
-              <td className="px-4 py-3 font-medium text-fg">{lead.student_name || "—"}</td>
-              <td className="px-4 py-3 text-muted">{lead.grade || "—"}</td>
-              <td className="px-4 py-3 text-muted">{lead.parent_name || "—"}</td>
-              <td className="px-4 py-3">
-                <div className="text-fg">{lead.mobile_no || "—"}</div>
-                <div className="text-xs text-muted">{lead.email}</div>
-              </td>
-              <td className="whitespace-nowrap px-4 py-3 text-muted">{lead.submit_date || "—"}</td>
-              <td className="px-4 py-3">
-                {isAdmin ? (
-                  <StatusSelect
-                    value={lead.status}
-                    onChange={(status) => onStatusChange(lead.id, status)}
-                  />
-                ) : (
-                  <StatusBadge status={lead.status} />
-                )}
-              </td>
-              <td className="max-w-[16rem] px-4 py-3 text-muted">
-                <span className="line-clamp-2">{lead.remark || "—"}</span>
-              </td>
-            </tr>
-          ))}
+          {leads.map((lead) => {
+            const { color } = STATUS_META[lead.status] ?? STATUS_META.New;
+            return (
+              <tr
+                key={lead.id}
+                onClick={() => onOpen(lead.id)}
+                className="cursor-pointer border-b border-line/60 transition-colors last:border-0 hover:bg-bg/60"
+              >
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[0.7rem] font-bold"
+                      style={{ color, backgroundColor: hexA(color, 0.14) }}
+                    >
+                      {initials(lead.student_name)}
+                    </span>
+                    <span className="font-medium text-fg">{lead.student_name || "Unnamed"}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-muted">{lead.grade || "—"}</td>
+                <td className="px-4 py-3 text-muted">{lead.parent_name || "—"}</td>
+                <td className="px-4 py-3">
+                  <div className="text-fg">{lead.mobile_no || "—"}</div>
+                  <div className="text-xs text-muted">{lead.email}</div>
+                </td>
+                <td className="whitespace-nowrap px-4 py-3 text-muted">
+                  {lead.submit_date || "—"}
+                </td>
+                <td className="px-4 py-3">
+                  {isAdmin ? (
+                    <StatusSelect
+                      value={lead.status}
+                      onChange={(status) => onStatusChange(lead.id, status)}
+                    />
+                  ) : (
+                    <StatusBadge status={lead.status} />
+                  )}
+                </td>
+                <td className="max-w-[16rem] px-4 py-3 text-muted">
+                  <span className="line-clamp-2">{lead.remark || "—"}</span>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -427,33 +512,44 @@ function StatusSelect({
 function LeadCards({ leads, onOpen }: { leads: Lead[]; onOpen: (id: string) => void }) {
   return (
     <div className="mt-4 flex flex-col gap-3 lg:hidden">
-      {leads.map((lead) => (
-        <button
-          key={lead.id}
-          type="button"
-          onClick={() => onOpen(lead.id)}
-          className="rounded-2xl border border-line bg-surface p-4 text-left shadow-soft transition-colors hover:bg-bg/50"
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div className="font-medium text-fg">{lead.student_name || "—"}</div>
-              <div className="text-xs text-muted">
-                {lead.grade || "—"} · {lead.submit_date}
+      {leads.map((lead) => {
+        const { color } = STATUS_META[lead.status] ?? STATUS_META.New;
+        return (
+          <button
+            key={lead.id}
+            type="button"
+            onClick={() => onOpen(lead.id)}
+            className="rounded-2xl border border-line bg-surface p-4 text-left shadow-soft transition-all active:scale-[0.99] hover:bg-bg/50"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-xs font-bold"
+                  style={{ color, backgroundColor: hexA(color, 0.14) }}
+                >
+                  {initials(lead.student_name)}
+                </span>
+                <div>
+                  <div className="font-medium text-fg">{lead.student_name || "Unnamed"}</div>
+                  <div className="text-xs text-muted">
+                    {lead.grade || "—"} · {lead.submit_date}
+                  </div>
+                </div>
               </div>
+              <StatusBadge status={lead.status} />
             </div>
-            <StatusBadge status={lead.status} />
-          </div>
-          <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted">
-            <span>{lead.parent_name || "—"}</span>
-            <span className="text-right text-fg">{lead.mobile_no}</span>
-          </div>
-          {lead.remark && (
-            <div className="mt-2 line-clamp-2 rounded-lg bg-bg/60 px-2.5 py-1.5 text-xs text-muted">
-              {lead.remark}
+            <div className="mt-3 flex items-center justify-between gap-2 text-xs text-muted">
+              <span>{lead.parent_name || "—"}</span>
+              <span className="font-medium text-fg">{lead.mobile_no}</span>
             </div>
-          )}
-        </button>
-      ))}
+            {lead.remark && (
+              <div className="mt-2 line-clamp-2 rounded-lg bg-bg/60 px-2.5 py-1.5 text-xs text-muted">
+                {lead.remark}
+              </div>
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }

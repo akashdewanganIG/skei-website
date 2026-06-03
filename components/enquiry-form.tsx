@@ -65,8 +65,8 @@ function validate(f: Fields): Errors {
   if (f.parent.trim().length < 2) e.parent = "Please enter the parent's name.";
   if (!/^\d{10}$/.test(f.phone.replace(/\D/g, "")))
     e.phone = "Enter a valid 10-digit phone number.";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) e.email = "Enter a valid email address.";
-  if (f.comment.trim().length < 2) e.comment = "Please leave a comment.";
+  if (f.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim()))
+    e.email = "Enter a valid email address.";
   return e;
 }
 
@@ -189,14 +189,14 @@ export default function EnquiryForm() {
             </Field>
           </div>
 
-          <Field label="Parents Name *" id="parent" error={errors.parent}>
+          <Field label="Parent/Guardian Name *" id="parent" error={errors.parent}>
             <input
               id="parent"
               type="text"
               autoComplete="name"
               value={f.parent}
               onChange={onInputChange("parent")}
-              placeholder="Full Name"
+              placeholder="Parent/Guardian Name"
               className={fieldClass("parent")}
               aria-invalid={!!errors.parent}
             />
@@ -217,7 +217,7 @@ export default function EnquiryForm() {
               />
             </Field>
 
-            <Field label="Email *" id="email" error={errors.email}>
+            <Field label="Email" id="email" error={errors.email}>
               <input
                 id="email"
                 type="email"
@@ -231,7 +231,7 @@ export default function EnquiryForm() {
             </Field>
           </div>
 
-          <Field label="Comment *" id="comment" error={errors.comment}>
+          <Field label="Comment" id="comment" error={errors.comment}>
             <textarea
               id="comment"
               value={f.comment}

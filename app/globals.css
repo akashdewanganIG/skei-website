@@ -1,5 +1,35 @@
 @import "tailwindcss";
 
+/* Theme-aware brand logo: swaps on the `.dark` class set by the theme toggle
+   (independent of the OS color-scheme preference). */
+.logo-on-light {
+  display: block;
+}
+.logo-on-dark {
+  display: none;
+}
+.dark .logo-on-light {
+  display: none;
+}
+.dark .logo-on-dark {
+  display: block;
+}
+
+/* Slow ken-burns zoom for the hero background (disabled under reduced-motion). */
+@keyframes hero-zoom {
+  from {
+    transform: scale(1.05);
+  }
+  to {
+    transform: scale(1.14);
+  }
+}
+.hero-zoom {
+  animation: hero-zoom 24s ease-in-out infinite alternate;
+  transform-origin: center;
+  will-change: transform;
+}
+
 @theme {
   --color-bg: #faf7f1;
   --color-fg: #1f1a14;

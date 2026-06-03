@@ -20,12 +20,14 @@ export default function Home() {
 
       <Navbar />
 
-      <main>
+      <main className="overflow-x-clip">
         <Hero />
         <CampusVideo />
         <TrustStrip />
         <Academics />
+        <TrustStrip />
         <Gallery />
+        <TrustStrip className="-mb-6 sm:-mb-8" />
         <FAQ />
         <AlumniSpeak />
       </main>
