@@ -96,25 +96,25 @@ export default function Hero() {
       </div>
 
       <div className="relative z-10 mx-auto max-w-[90rem] px-4 sm:px-6 lg:px-8">
-        <div className="grid items-start gap-10 lg:grid-cols-[1.25fr_1fr] lg:gap-12 xl:gap-20">
+        <div className="grid items-start gap-10 lg:grid-cols-[1.25fr_1fr] lg:items-center lg:gap-12 xl:gap-20">
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="show"
-            className="flex flex-col text-left lg:pt-10"
+            className="flex flex-col text-left"
           >
             <motion.h1
               variants={itemVariants}
-              className="max-w-2xl font-display text-[1.7rem] leading-[1.18] tracking-tight text-white drop-shadow-sm sm:text-[2rem] lg:text-[2.6rem] lg:leading-[1.12]"
+              className="max-w-2xl font-display text-h2 text-white drop-shadow-sm"
             >
-              A CBSE school rooted in Bangalore for generations - built on the belief that a child who loves learning will find their own way.
+              A CBSE school rooted in Bangalore for generations
             </motion.h1>
 
             <motion.p
               variants={itemVariants}
-              className="mt-5 max-w-xl text-[0.9rem] leading-relaxed text-pretty text-ivory/85 sm:mt-6 sm:text-[0.95rem]"
+              className="mt-5 max-w-xl text-base leading-relaxed text-pretty text-ivory/85 sm:mt-6 sm:text-[1.05rem]"
             >
-              Tucked in Vasanth Nagar, in the shade of trees older than the city's skyline, SKEI has been a place of quiet, deliberate education for decades. Our CBSE curriculum, from Nursery through Grade 10, is taught not as a race to results but as an invitation to think, question, and discover. Children here learn with their hands and their curiosity - in classrooms that open outward, not inward. This is not a school that measures itself by rankings. It measures itself by the children who leave knowing who they are. 
+              Tucked in Vasanth Nagar, in the shade of trees older than the city's skyline, SKEI has been a place of quiet, deliberate education for decades. Our CBSE curriculum, from Nursery through Grade 10, is taught not as a race to results but as an invitation to think, question, and discover.
             </motion.p>
 
             <motion.dl
@@ -146,7 +146,7 @@ export default function Hero() {
             id={ENQUIRY_ID}
             initial={{ opacity: 0, x: 30 }}
             animate={formControls}
-            className="mx-auto w-full max-w-lg scroll-mt-28 rounded-2xl shadow-[0_30px_70px_-25px_rgba(0,0,0,0.55)] lg:mr-0 lg:-mt-6"
+            className="mx-auto w-full max-w-lg scroll-mt-28 rounded-2xl shadow-[0_30px_70px_-25px_rgba(0,0,0,0.55)] lg:mr-0"
           >
             <EnquiryForm />
           </motion.div>
