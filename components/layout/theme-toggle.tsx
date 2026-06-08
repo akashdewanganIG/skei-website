@@ -7,6 +7,7 @@ export function ThemeToggle() {
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync the icon with the theme class set before hydration.
     setDark(document.documentElement.classList.contains("dark"));
   }, []);
 

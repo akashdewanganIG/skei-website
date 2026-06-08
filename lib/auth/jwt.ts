@@ -11,6 +11,8 @@ export type JwtPayload = {
   sub: string;
   role: string;
   name: string;
+  email?: string;
+  permissions?: string[];
   iat: number;
   exp: number;
 };
@@ -46,7 +48,7 @@ async function getKey(secret: string): Promise<CryptoKey> {
 }
 
 export async function signToken(
-  data: Pick<JwtPayload, "sub" | "role" | "name">,
+  data: Pick<JwtPayload, "sub" | "role" | "name" | "email" | "permissions">,
   secret: string,
   expiresInSeconds: number,
 ): Promise<string> {

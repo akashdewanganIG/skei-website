@@ -1,11 +1,12 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Select } from "./ui/select";
 import ReCAPTCHA from "react-google-recaptcha";
 import { submitEnquiry } from "@/lib/api";
+import { isValidEmail, isValidIndianMobile } from "@/lib/validation";
 
 const GRADES = [
   "Early Years (Nursery-Prep)",
@@ -34,6 +35,16 @@ type Fields = {
 
 type Errors = Partial<Record<keyof Fields, string>>;
 
+type AttributionFields = {
+  source: string;
+  utm_source: string;
+  utm_medium: string;
+  utm_campaign: string;
+  utm_term: string;
+  utm_content: string;
+  referrer: string;
+};
+
 const EMPTY_FIELDS: Fields = {
   student: "",
   grade: "",
@@ -44,6 +55,30 @@ const EMPTY_FIELDS: Fields = {
   email: "",
   comment: "",
 };
+
+const EMPTY_ATTRIBUTION: AttributionFields = {
+  source: "",
+  utm_source: "",
+  utm_medium: "",
+  utm_campaign: "",
+  utm_term: "",
+  utm_content: "",
+  referrer: "",
+};
+
+function readAttribution(): AttributionFields {
+  if (typeof window === "undefined") return EMPTY_ATTRIBUTION;
+  const params = new URLSearchParams(window.location.search);
+  return {
+    source: params.get("source") ?? params.get("lead_source") ?? "",
+    utm_source: params.get("utm_source") ?? "",
+    utm_medium: params.get("utm_medium") ?? "",
+    utm_campaign: params.get("utm_campaign") ?? "",
+    utm_term: params.get("utm_term") ?? "",
+    utm_content: params.get("utm_content") ?? "",
+    referrer: document.referrer ?? "",
+  };
+}
 
 type Option = { value: string; label: string };
 
@@ -63,14 +98,15 @@ function validate(f: Fields): Errors {
   if (!f.dob) e.dob = "Enter the date of birth.";
   if (!f.gender) e.gender = "Select a gender.";
   if (f.parent.trim().length < 2) e.parent = "Please enter the parent's name.";
-  if (!/^\d{10}$/.test(f.phone.replace(/\D/g, "")))
-    e.phone = "Enter a valid 10-digit phone number.";
-  if (f.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim()))
+  if (!isValidIndianMobile(f.phone)) e.phone = "Enter a valid 10-digit phone number.";
+  if (f.email.trim() && !isValidEmail(f.email.trim()))
     e.email = "Enter a valid email address.";
   return e;
 }
 
 export default function EnquiryForm() {
+  const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
   const [f, setF] = useState<Fields>(EMPTY_FIELDS);
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
@@ -96,17 +132,14 @@ export default function EnquiryForm() {
       return;
     }
 
+    if (!recaptchaSiteKey) {
+      toast.error("Form verification is not configured.");
+      return;
+    }
+
     setSubmitting(true);
-
-    const now = new Date();
-    const day = String(now.getDate()).padStart(2, "0");
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const year = now.getFullYear();
-    const formattedDate = `${day}-${month}-${year}`;
-
     try {
       await submitEnquiry({
-        submit_date: formattedDate,
         student_name: f.student,
         grade: f.grade,
         dob: f.dob,
@@ -115,6 +148,8 @@ export default function EnquiryForm() {
         mobile_no: f.phone,
         email: f.email,
         comment: f.comment,
+        recaptchaToken,
+        ...readAttribution(),
       });
 
       toast.success("Thank you! Your inquiry has been submitted.");
@@ -124,6 +159,8 @@ export default function EnquiryForm() {
       toast.error("Something went wrong. Please try submitting again.");
     } finally {
       setSubmitting(false);
+      setRecaptchaToken(null);
+      recaptchaRef.current?.reset();
     }
   };
 
@@ -244,12 +281,19 @@ export default function EnquiryForm() {
           </Field>
         </div>
 
-        <div className="mt-5 flex justify-center w-full overflow-hidden">
-          <ReCAPTCHA
-            sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "YOUR_SITE_KEY_HERE"}
-            onChange={(token) => setRecaptchaToken(token)}
-            onExpired={() => setRecaptchaToken(null)}
-          />
+        <div className="mt-5 flex w-full justify-center overflow-hidden">
+          {recaptchaSiteKey ? (
+            <ReCAPTCHA
+              ref={recaptchaRef}
+              sitekey={recaptchaSiteKey}
+              onChange={(token) => setRecaptchaToken(token)}
+              onExpired={() => setRecaptchaToken(null)}
+            />
+          ) : (
+            <p className="text-center text-xs font-medium text-clay-deep">
+              Form verification is not configured.
+            </p>
+          )}
         </div>
 
         <motion.button

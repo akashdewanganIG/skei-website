@@ -1,8 +1,8 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { verifyToken } from "@/lib/auth/jwt";
+import { type NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE } from "@/lib/auth/constants";
+import { verifyToken } from "@/lib/auth/jwt";
 
-const LOGIN_PATH = "/skei-admin/login";
+const LOGIN_PATH = "/skei-portal/login";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -14,13 +14,13 @@ export async function middleware(request: NextRequest) {
 
   // Already signed in but sitting on the login page → send to the dashboard.
   if (session && isLoginPage) {
-    return NextResponse.redirect(new URL("/skei-admin", request.url));
+    return NextResponse.redirect(new URL("/skei-portal", request.url));
   }
 
-  // Protect everything under /skei-admin except the login page itself.
+  // Protect everything under /skei-portal except the login page itself.
   if (!session && !isLoginPage) {
     const loginUrl = new URL(LOGIN_PATH, request.url);
-    if (pathname !== "/skei-admin") loginUrl.searchParams.set("from", pathname);
+    if (pathname !== "/skei-portal") loginUrl.searchParams.set("from", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
@@ -28,5 +28,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/skei-admin/:path*"],
+  matcher: ["/skei-portal/:path*"],
 };

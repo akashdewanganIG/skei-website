@@ -107,14 +107,17 @@ export default function Hero() {
               variants={itemVariants}
               className="max-w-2xl font-display text-h2 text-white drop-shadow-sm"
             >
-              A CBSE school rooted in Bangalore for generations
+              A CBSE school rooted in Bangalore for generations.
             </motion.h1>
 
             <motion.p
               variants={itemVariants}
               className="mt-5 max-w-xl text-base leading-relaxed text-pretty text-ivory/85 sm:mt-6 sm:text-[1.05rem]"
             >
-              Tucked in Vasanth Nagar, in the shade of trees older than the city's skyline, SKEI has been a place of quiet, deliberate education for decades. Our CBSE curriculum, from Nursery through Grade 10, is taught not as a race to results but as an invitation to think, question, and discover.
+              Tucked in Vasanth Nagar, in the shade of trees older than the city&apos;s skyline,
+              SKEI has been a place of quiet, deliberate education for decades. Our CBSE
+              curriculum, from Nursery through Grade 10, is taught not as a race to results but as
+              an invitation to think, question, and discover.
             </motion.p>
 
             <motion.dl

@@ -1,10 +1,14 @@
-import { scryptSync, randomBytes, timingSafeEqual } from "node:crypto";
-import type { Role, Session } from "@/types/lead";
+import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { sql } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { adminUsers } from "@/lib/db/schema";
+import type { Session } from "@/types/lead";
+import { normalizePermissions } from "./permissions";
 
 /**
  * Password hashing/verification using Node's scrypt. Runs only inside the
- * Node.js runtime (the login route handler). Hashes are stored in env vars as
- * `scrypt$<saltHex>$<hashHex>`; generate them with `npm run hash-password`.
+ * Node.js runtime (route handlers). Hashes are stored only in the admin_users
+ * table as `scrypt$<saltHex>$<hashHex>`.
  */
 
 const KEYLEN = 64;
@@ -24,38 +28,101 @@ export function verifyPassword(password: string, stored: string): boolean {
   return derived.length === expected.length && timingSafeEqual(derived, expected);
 }
 
-type Account = {
-  username?: string;
-  hash?: string;
-  role: Role;
-  name: string;
-};
+async function findUser(identifier: string) {
+  const candidate = identifier.trim().toLowerCase();
+  if (!candidate) return null;
 
-function getAccounts(): Account[] {
-  return [
-    {
-      username: process.env.ADMIN_USERNAME,
-      hash: process.env.ADMIN_PASSWORD_HASH,
-      role: "admin",
-      name: process.env.ADMIN_NAME || "Administrator",
-    },
-    {
-      username: process.env.STAFF_USERNAME,
-      hash: process.env.STAFF_PASSWORD_HASH,
-      role: "staff",
-      name: process.env.STAFF_NAME || "SKEI Staff",
-    },
-  ];
+  const [user] = await db
+    .select()
+    .from(adminUsers)
+    .where(sql`
+      lower(${adminUsers.username}) = ${candidate}
+      or lower(${adminUsers.email}) = ${candidate}
+    `)
+    .limit(1);
+
+  return user ?? null;
 }
 
 /** Returns the matching session identity, or null on bad credentials. */
-export function authenticate(username: string, password: string): Session | null {
-  const candidate = username.trim();
-  for (const account of getAccounts()) {
-    if (!account.username || !account.hash) continue;
-    if (account.username !== candidate) continue;
-    if (!verifyPassword(password, account.hash)) return null;
-    return { username: account.username, role: account.role, name: account.name };
-  }
-  return null;
+export async function authenticate(identifier: string, password: string): Promise<Session | null> {
+  const user = await findUser(identifier);
+  if (!user || !verifyPassword(password, user.passwordHash)) return null;
+
+  await db
+    .update(adminUsers)
+    .set({ lastLoginAt: new Date(), updatedAt: new Date() })
+    .where(sql`${adminUsers.id} = ${user.id}`);
+
+  return {
+    username: user.username,
+    email: user.email,
+    role: user.role,
+    name: user.name,
+    permissions: normalizePermissions(user.role, user.permissions),
+  };
+}
+
+export async function changePassword(
+  username: string,
+  currentPassword: string,
+  nextPassword: string,
+): Promise<Session | null> {
+  const user = await findUser(username);
+  if (!user || !verifyPassword(currentPassword, user.passwordHash)) return null;
+
+  await db
+    .update(adminUsers)
+    .set({
+      passwordHash: hashPassword(nextPassword),
+      passwordChangedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(sql`${adminUsers.id} = ${user.id}`);
+
+  return {
+    username: user.username,
+    email: user.email,
+    role: user.role,
+    name: user.name,
+    permissions: normalizePermissions(user.role, user.permissions),
+  };
+}
+
+export async function getUserByUsername(username: string): Promise<Session | null> {
+  const user = await findUser(username);
+  if (!user) return null;
+  return {
+    username: user.username,
+    email: user.email,
+    role: user.role,
+    name: user.name,
+    permissions: normalizePermissions(user.role, user.permissions),
+  };
+}
+
+export async function updateProfile(
+  currentUsername: string,
+  updates: { username?: string; email?: string; name?: string },
+): Promise<Session | null> {
+  const user = await findUser(currentUsername);
+  if (!user) return null;
+
+  const patch: { username?: string; email?: string; name?: string; updatedAt: Date } = { updatedAt: new Date() };
+  if (updates.username) patch.username = updates.username;
+  if (updates.email) patch.email = updates.email;
+  if (updates.name !== undefined) patch.name = updates.name;
+
+  await db.update(adminUsers).set(patch).where(sql`${adminUsers.id} = ${user.id}`);
+
+  const updatedUser = await findUser(patch.username || user.username);
+  if (!updatedUser) return null;
+
+  return {
+    username: updatedUser.username,
+    email: updatedUser.email,
+    role: updatedUser.role,
+    name: updatedUser.name,
+    permissions: normalizePermissions(updatedUser.role, updatedUser.permissions),
+  };
 }

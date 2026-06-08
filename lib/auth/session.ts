@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
-import { signToken, verifyToken } from "./jwt";
-import { SESSION_COOKIE, SESSION_MAX_AGE } from "./constants";
 import type { Role, Session } from "@/types/lead";
+import { SESSION_COOKIE, SESSION_MAX_AGE } from "./constants";
+import { signToken, verifyToken } from "./jwt";
+import { normalizePermissions } from "./permissions";
 
 export { SESSION_COOKIE, SESSION_MAX_AGE };
 
@@ -13,7 +14,13 @@ function getSecret(): string {
 
 export async function createSessionToken(session: Session): Promise<string> {
   return signToken(
-    { sub: session.username, role: session.role, name: session.name },
+    {
+      sub: session.username,
+      email: session.email,
+      role: session.role,
+      name: session.name,
+      permissions: session.permissions,
+    },
     getSecret(),
     SESSION_MAX_AGE,
   );
@@ -30,7 +37,14 @@ export async function getSession(): Promise<Session | null> {
   const payload = await verifyToken(token, secret);
   if (!payload) return null;
 
-  return { username: payload.sub, role: payload.role as Role, name: payload.name };
+  const role = payload.role as Role;
+  return {
+    username: payload.sub,
+    email: payload.email ?? "",
+    role,
+    name: payload.name,
+    permissions: normalizePermissions(role, payload.permissions),
+  };
 }
 
 export const sessionCookieOptions = {

@@ -6,8 +6,6 @@ import {
   type RemixiconComponentType,
 } from "@remixicon/react";
 
-export const SCROLL_THRESHOLD = 20;
-
 export const ENQUIRY_ID = "enquiry";
 
 /** Fired when an "Enroll Now" CTA is tapped, so the enquiry form can pop. */

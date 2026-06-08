@@ -6,7 +6,7 @@
  *   node scripts/hash-password.mjs "MyStrongPassword"
  *   node scripts/hash-password.mjs --secret
  */
-import { scryptSync, randomBytes } from "node:crypto";
+import { randomBytes, scryptSync } from "node:crypto";
 
 function hashPassword(password) {
   const salt = randomBytes(16);
@@ -26,5 +26,5 @@ if (arg === "--secret") {
   process.exit(0);
 }
 
-console.log("\nPassword hash (paste into ADMIN_PASSWORD_HASH / STAFF_PASSWORD_HASH):\n");
+console.log("\nPassword hash:\n");
 console.log(`${hashPassword(arg)}\n`);

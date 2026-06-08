@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/skei-admin", "/api"],
+      disallow: ["/skei-portal", "/api"],
     },
     host: "https://skei.edu.in",
   };

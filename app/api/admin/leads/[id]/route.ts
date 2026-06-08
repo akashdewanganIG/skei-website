@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { recordAuditLog } from "@/lib/audit";
+import { hasPermission } from "@/lib/auth/permissions";
 import { getSession } from "@/lib/auth/session";
-import { updateLead, deleteLead } from "@/lib/leads";
+import { deleteLead, updateLead } from "@/lib/leads";
 import { EDITABLE_LEAD_FIELDS, LEAD_STATUSES, type Lead } from "@/types/lead";
 
 export const runtime = "nodejs";
@@ -23,15 +25,24 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
   const patch: Partial<Omit<Lead, "id">> = {};
 
-  // Remarks: both roles may edit.
+  // Remarks: available to anyone with the remark permission.
   if (typeof body.remark === "string") {
+    if (!hasPermission(session, "edit_remarks")) {
+      return NextResponse.json(
+        { error: "You do not have permission to edit remarks." },
+        { status: 403 },
+      );
+    }
     patch.remark = body.remark.slice(0, 2000);
   }
 
-  // Status and field corrections: admins only.
+  // Status and field corrections are permission-driven.
   if (body.status !== undefined) {
-    if (session.role !== "admin") {
-      return NextResponse.json({ error: "Only admins can change status." }, { status: 403 });
+    if (!hasPermission(session, "manage_status")) {
+      return NextResponse.json(
+        { error: "You do not have permission to change status." },
+        { status: 403 },
+      );
     }
     if (!LEAD_STATUSES.includes(body.status as Lead["status"])) {
       return NextResponse.json({ error: "Invalid status." }, { status: 400 });
@@ -41,8 +52,11 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
   for (const field of EDITABLE_LEAD_FIELDS) {
     if (body[field] === undefined) continue;
-    if (session.role !== "admin") {
-      return NextResponse.json({ error: "Only admins can edit lead details." }, { status: 403 });
+    if (!hasPermission(session, "edit_leads")) {
+      return NextResponse.json(
+        { error: "You do not have permission to edit lead details." },
+        { status: 403 },
+      );
     }
     patch[field] = String(body[field]);
   }
@@ -53,6 +67,18 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
   try {
     const lead = await updateLead(id, patch, session.name);
+    const changed = Object.keys(patch);
+    await recordAuditLog(session, {
+      action: changed.includes("status")
+        ? "lead.status_changed"
+        : changed.includes("remark")
+          ? "lead.remark_updated"
+          : "lead.updated",
+      entityType: "lead",
+      entityId: id,
+      summary: `Updated ${lead.student_name || "lead"}`,
+      metadata: { changed },
+    });
     return NextResponse.json({ lead });
   } catch (error) {
     console.error("Failed to update lead:", error);
@@ -65,13 +91,28 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
   if (!session) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
-  if (session.role !== "admin") {
-    return NextResponse.json({ error: "Only admins can delete leads." }, { status: 403 });
+  if (!hasPermission(session, "delete_leads")) {
+    return NextResponse.json(
+      { error: "You do not have permission to delete leads." },
+      { status: 403 },
+    );
   }
 
   const { id } = await params;
   try {
-    await deleteLead(id);
+    const lead = await deleteLead(id);
+    await recordAuditLog(session, {
+      action: "lead.deleted",
+      entityType: "lead",
+      entityId: id,
+      summary: `Deleted ${lead.student_name || "lead"}`,
+      metadata: {
+        studentName: lead.student_name,
+        grade: lead.grade,
+        status: lead.status,
+        source: lead.source,
+      },
+    });
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Failed to delete lead:", error);

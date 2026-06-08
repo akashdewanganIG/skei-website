@@ -1,0 +1,1 @@
+ALTER TABLE "lead_categories" ADD COLUMN "utm_tags" jsonb DEFAULT '{}'::jsonb NOT NULL;

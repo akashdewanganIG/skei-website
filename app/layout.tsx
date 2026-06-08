@@ -107,9 +107,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <head>
         <script
           type="application/ld+json"
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is generated from static metadata.
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schoolJsonLd) }}
         />
         <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: Inline theme bootstrap prevents a light/dark flash before React hydrates.
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var d=localStorage.getItem('theme')==='dark';document.documentElement.classList.toggle('dark',d);}catch(e){}})();`,
           }}

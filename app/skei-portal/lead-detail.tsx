@@ -1,18 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import {
   RiCloseLine,
-  RiEditLine,
   RiDeleteBinLine,
-  RiSaveLine,
-  RiPhoneLine,
+  RiEditLine,
   RiMailLine,
+  RiPhoneLine,
+  RiSaveLine,
 } from "@remixicon/react";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { EASE } from "@/lib/animations";
 import { EDITABLE_LEAD_FIELDS, LEAD_STATUSES, type Lead } from "@/types/lead";
-import { STATUS_META, hexA } from "./status";
+import { hexA, STATUS_META } from "./status";
 
 const FIELD_LABELS: Record<(typeof EDITABLE_LEAD_FIELDS)[number], string> = {
   student_name: "Student name",
@@ -27,13 +27,19 @@ const FIELD_LABELS: Record<(typeof EDITABLE_LEAD_FIELDS)[number], string> = {
 
 export function LeadDetail({
   lead,
-  isAdmin,
+  canEditRemarks,
+  canEditDetails,
+  canManageStatus,
+  canDelete,
   onClose,
   onPatch,
   onDelete,
 }: {
   lead: Lead;
-  isAdmin: boolean;
+  canEditRemarks: boolean;
+  canEditDetails: boolean;
+  canManageStatus: boolean;
+  canDelete: boolean;
   onClose: () => void;
   onPatch: (id: string, patch: Partial<Lead>) => Promise<boolean>;
   onDelete: (id: string) => void;
@@ -121,14 +127,16 @@ export function LeadDetail({
                   <button
                     key={status}
                     type="button"
-                    disabled={!isAdmin}
-                    onClick={() => isAdmin && status !== lead.status && onPatch(lead.id, { status })}
+                    disabled={!canManageStatus}
+                    onClick={() =>
+                      canManageStatus && status !== lead.status && onPatch(lead.id, { status })
+                    }
                     className="rounded-full border px-3 py-1 text-xs font-semibold transition-all disabled:cursor-default"
                     style={{
                       color: active ? "#fff" : color,
                       backgroundColor: active ? color : hexA(color, 0.1),
                       borderColor: hexA(color, active ? 1 : 0.3),
-                      opacity: !isAdmin && !active ? 0.5 : 1,
+                      opacity: !canManageStatus && !active ? 0.5 : 1,
                     }}
                   >
                     {status}
@@ -136,9 +144,9 @@ export function LeadDetail({
                 );
               })}
             </div>
-            {!isAdmin && (
+            {!canManageStatus && (
               <p className="mt-1.5 text-[0.7rem] text-muted/70">
-                Status is managed by administrators.
+                Status changes are not enabled for this account.
               </p>
             )}
           </div>
@@ -147,7 +155,7 @@ export function LeadDetail({
           <div>
             <div className="flex items-center justify-between">
               <SectionLabel>Enquiry details</SectionLabel>
-              {isAdmin &&
+              {canEditDetails &&
                 (editing ? (
                   <button
                     type="button"
@@ -218,9 +226,10 @@ export function LeadDetail({
             <textarea
               value={remark}
               onChange={(e) => setRemark(e.target.value)}
+              disabled={!canEditRemarks}
               rows={3}
               placeholder="Add a note about this lead…"
-              className="mt-2 w-full resize-none rounded-xl border border-fg/15 bg-bg/60 px-3.5 py-2.5 text-sm text-fg placeholder:text-muted/60 outline-none transition-all focus:border-clay/50 focus:bg-surface focus:ring-2 focus:ring-clay/25"
+              className="mt-2 w-full resize-none rounded-xl border border-fg/15 bg-bg/60 px-3.5 py-2.5 text-sm text-fg placeholder:text-muted/60 outline-none transition-all focus:border-clay/50 focus:bg-surface focus:ring-2 focus:ring-clay/25 disabled:cursor-not-allowed disabled:opacity-60"
             />
             <div className="mt-2 flex items-center justify-between">
               <span className="text-[0.7rem] text-muted/70">
@@ -231,7 +240,7 @@ export function LeadDetail({
               <button
                 type="button"
                 onClick={saveRemark}
-                disabled={!remarkDirty || savingRemark}
+                disabled={!canEditRemarks || !remarkDirty || savingRemark}
                 className="rounded-full bg-clay px-4 py-1.5 text-xs font-semibold text-ivory transition-colors hover:bg-clay-deep disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {savingRemark ? "Saving…" : "Save remark"}
@@ -240,7 +249,7 @@ export function LeadDetail({
           </div>
 
           {/* Danger zone (admin) */}
-          {isAdmin && (
+          {canDelete && (
             <div className="border-t border-line pt-4">
               {confirmDelete ? (
                 <div className="flex items-center justify-between gap-3 rounded-xl border border-clay/30 bg-clay/[0.06] px-3.5 py-2.5">

@@ -1,7 +1,7 @@
 import { desc, eq } from "drizzle-orm";
+import type { Lead } from "@/types/lead";
 import { db } from "./db";
 import { type LeadRow, leads } from "./db/schema";
-import type { Lead } from "@/types/lead";
 
 /**
  * Server-side data access for leads, backed by PostgreSQL (Drizzle ORM).
@@ -49,6 +49,13 @@ function toLead(row: LeadRow): Lead {
     mobile_no: row.mobileNo,
     email: row.email,
     comment: row.comment,
+    source: row.source,
+    utm_source: row.utmSource,
+    utm_medium: row.utmMedium,
+    utm_campaign: row.utmCampaign,
+    utm_term: row.utmTerm,
+    utm_content: row.utmContent,
+    referrer: row.referrer,
     status: row.status,
     remark: row.remark,
     updated_at: row.updatedAt ? formatDateTime(row.updatedAt) : "",
@@ -56,8 +63,8 @@ function toLead(row: LeadRow): Lead {
   };
 }
 
-/** Fields a public enquiry may set. */
-type EnquiryInput = Partial<
+/** Fields a public enquiry or manual portal entry may set. */
+type LeadInput = Partial<
   Pick<
     Lead,
     | "student_name"
@@ -68,6 +75,16 @@ type EnquiryInput = Partial<
     | "mobile_no"
     | "email"
     | "comment"
+    | "source"
+    | "utm_source"
+    | "utm_medium"
+    | "utm_campaign"
+    | "utm_term"
+    | "utm_content"
+    | "referrer"
+    | "status"
+    | "remark"
+    | "updated_by"
   >
 >;
 
@@ -76,20 +93,30 @@ export async function listLeads(): Promise<Lead[]> {
   return rows.map(toLead);
 }
 
-export async function createLead(input: EnquiryInput): Promise<Lead> {
-  const [row] = await db
-    .insert(leads)
-    .values({
-      studentName: input.student_name ?? "",
-      grade: input.grade ?? "",
-      dob: input.dob ?? "",
-      gender: input.gender ?? "",
-      parentName: input.parent_name ?? "",
-      mobileNo: input.mobile_no ?? "",
-      email: input.email ?? "",
-      comment: input.comment ?? "",
-    })
-    .returning();
+export async function createLead(input: LeadInput): Promise<Lead> {
+  const values: typeof leads.$inferInsert = {
+    studentName: input.student_name ?? "",
+    grade: input.grade ?? "",
+    dob: input.dob ?? "",
+    gender: input.gender ?? "",
+    parentName: input.parent_name ?? "",
+    mobileNo: input.mobile_no ?? "",
+    email: input.email ?? "",
+    comment: input.comment ?? "",
+    source: input.source ?? "",
+    utmSource: input.utm_source ?? "",
+    utmMedium: input.utm_medium ?? "",
+    utmCampaign: input.utm_campaign ?? "",
+    utmTerm: input.utm_term ?? "",
+    utmContent: input.utm_content ?? "",
+    referrer: input.referrer ?? "",
+    status: input.status ?? "New",
+    remark: input.remark ?? "",
+    updatedBy: input.updated_by ?? "",
+  };
+  if (input.updated_by) values.updatedAt = new Date();
+
+  const [row] = await db.insert(leads).values(values).returning();
   return toLead(row);
 }
 
@@ -113,12 +140,21 @@ export async function updateLead(
   if (patch.mobile_no !== undefined) set.mobileNo = patch.mobile_no;
   if (patch.email !== undefined) set.email = patch.email;
   if (patch.comment !== undefined) set.comment = patch.comment;
+  if (patch.source !== undefined) set.source = patch.source;
+  if (patch.utm_source !== undefined) set.utmSource = patch.utm_source;
+  if (patch.utm_medium !== undefined) set.utmMedium = patch.utm_medium;
+  if (patch.utm_campaign !== undefined) set.utmCampaign = patch.utm_campaign;
+  if (patch.utm_term !== undefined) set.utmTerm = patch.utm_term;
+  if (patch.utm_content !== undefined) set.utmContent = patch.utm_content;
+  if (patch.referrer !== undefined) set.referrer = patch.referrer;
 
   const [row] = await db.update(leads).set(set).where(eq(leads.id, id)).returning();
   if (!row) throw new Error("Lead not found.");
   return toLead(row);
 }
 
-export async function deleteLead(id: string): Promise<void> {
-  await db.delete(leads).where(eq(leads.id, id));
+export async function deleteLead(id: string): Promise<Lead> {
+  const [row] = await db.delete(leads).where(eq(leads.id, id)).returning();
+  if (!row) throw new Error("Lead not found.");
+  return toLead(row);
 }

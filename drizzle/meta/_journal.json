@@ -8,6 +8,41 @@
       "when": 1780491625887,
       "tag": "0000_tidy_valkyrie",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1780915833740,
+      "tag": "0001_flippant_shocker",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780938460700,
+      "tag": "0002_massive_human_robot",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1780942275682,
+      "tag": "0003_windy_chimera",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1780943323440,
+      "tag": "0004_vengeful_rick_jones",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1780943593641,
+      "tag": "0005_fearless_reaper",
+      "breakpoints": true
     }
   ]
 }

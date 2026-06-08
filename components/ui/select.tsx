@@ -70,7 +70,7 @@ export function Select({ error, ...props }: SelectProps) {
       components={{ DropdownIndicator, Menu }}
       menuPosition="fixed"
       menuPortalTarget={typeof document !== "undefined" ? document.body : undefined}
-      styles={{ menuPortal: (base) => ({ ...base, zIndex: 60 }) }}
+      styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
       {...props}
     />
   );

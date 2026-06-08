@@ -1,15 +1,15 @@
-# SKEI Admin: Leads Dashboard
+# SKEI Portal: Leads Dashboard
 
-A private dashboard at **`/skei-admin`** for viewing and managing enquiry leads.
+A private portal at **`/skei-portal`** for viewing and managing enquiry leads.
 There is intentionally **no link to it anywhere on the public site**. Reach it by
 typing the URL.
 
 ## Roles
 
-| Role  | Can do                                                                   |
-| ----- | ------------------------------------------------------------------------ |
-| Staff | View leads, add/edit **remarks**                                         |
-| Admin | Everything: edit **status**, edit lead **details**, **delete**, **CSV export** |
+| Role  | Can do                                                                 |
+| ----- | ---------------------------------------------------------------------- |
+| Staff | Permissions are granted by an admin                                    |
+| Admin | Manage users, permissions, leads, analytics, exports, and change logs  |
 
 ## One-time setup
 
@@ -35,29 +35,25 @@ with the existing public enquiry form.
 ```bash
 # session signing secret
 node scripts/hash-password.mjs --secret        # → AUTH_SECRET=...
-
-# one hash per account
-node scripts/hash-password.mjs "admin-password" # → ADMIN_PASSWORD_HASH
-node scripts/hash-password.mjs "staff-password" # → STAFF_PASSWORD_HASH
 ```
 
 Fill in `.env` (see [`.env.example`](../.env.example)):
 
-- `AUTH_SECRET`, `ADMIN_PASSWORD_HASH`, `STAFF_PASSWORD_HASH`
-- `ADMIN_USERNAME` / `STAFF_USERNAME` (and optional display names)
-- `LEADS_SCRIPT_URL`: the `/exec` URL from step 1
-- `LEADS_API_SECRET`: must equal the Apps Script `API_SECRET`
+- `DATABASE_URL`: pooled PostgreSQL connection string
+- `AUTH_SECRET`: session signing secret
+- `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`: public enquiry form reCAPTCHA key
 
 On Vercel, add the same variables under **Project → Settings → Environment Variables**.
 
 ### 3. Sign in
 
-Visit `/skei-admin`, log in with either account. Staff land on the same dashboard
-but only the remark field is editable for them.
+Visit `/skei-portal`, log in with username or email. Admin users can create more
+users and grant specific portal permissions. Portal users, emails, permissions,
+and password hashes are stored in PostgreSQL, not environment variables.
 
 ## Security notes
 
 - Session is a signed, httpOnly cookie (HS256), verified in middleware and in every
-  API route. Admin-only actions are re-checked server-side, never trusting the client.
+  API route. Permission checks are re-run server-side, never trusting the client.
 - The shared `LEADS_API_SECRET` stays server-side; it is never sent to the browser.
-- `/skei-admin` and `/api` are disallowed in `robots.txt` and marked `noindex`.
+- `/skei-portal` and `/api` are disallowed in `robots.txt` and marked `noindex`.
