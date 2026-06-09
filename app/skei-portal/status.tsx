@@ -1,12 +1,14 @@
 import type { LeadStatus } from "@/types/lead";
 
-/** Warm, palette-aligned accent per pipeline status. */
+export const STATUS_ACCENT = "#d9481e";
+
+/** Single accent for every pipeline status. */
 export const STATUS_META: Record<LeadStatus, { color: string }> = {
-  New: { color: "#d9481e" },
-  Contacted: { color: "#c2871b" },
-  "Visit Scheduled": { color: "#3f7cac" },
-  Admitted: { color: "#2f8f5b" },
-  Closed: { color: "#857a6b" },
+  New: { color: STATUS_ACCENT },
+  Contacted: { color: STATUS_ACCENT },
+  "Visit Scheduled": { color: STATUS_ACCENT },
+  Admitted: { color: STATUS_ACCENT },
+  Closed: { color: STATUS_ACCENT },
 };
 
 /** Hex color with an alpha channel, e.g. hexA("#d9481e", 0.12). */

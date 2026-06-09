@@ -188,6 +188,70 @@
   }
 }
 
+/* Sonner toasts, retuned to the warm ivory/clay/ink brand palette.
+   Dark variants key off the app's manual `.dark` class (not Sonner's own
+   theme prop, which can't see the manual toggle). The `html ` prefix lifts
+   specificity above Sonner's injected `[data-sonner-toaster][data-sonner-theme]`
+   defaults without resorting to !important. Normal-state colors reference the
+   theme tokens directly, so they adapt to light/dark on their own. */
+html [data-sonner-toaster].skei-toaster {
+  --border-radius: 14px;
+
+  --normal-bg: var(--color-surface);
+  --normal-border: var(--color-line);
+  --normal-text: var(--color-fg);
+
+  --success-bg: #eef4ea;
+  --success-border: #cfe0c2;
+  --success-text: #3f6a44;
+
+  --error-bg: #fbeee8;
+  --error-border: #f0cbba;
+  --error-text: var(--color-clay-deep);
+}
+
+html.dark [data-sonner-toaster].skei-toaster {
+  --success-bg: #16231a;
+  --success-border: #2d4a32;
+  --success-text: #93c79a;
+
+  --error-bg: #2a1810;
+  --error-border: #5a2d1a;
+  --error-text: var(--color-clay);
+}
+
+.skei-toaster [data-sonner-toast] {
+  padding: 14px 16px;
+  border-width: 1px;
+  box-shadow: var(--shadow-lift);
+  font-family: var(--font-body);
+}
+
+.skei-toaster [data-sonner-toast] [data-title] {
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: -0.01em;
+}
+
+.skei-toaster [data-sonner-toast] [data-description] {
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+}
+
+.skei-toaster [data-sonner-toast] [data-icon] {
+  margin-right: 4px;
+}
+
+/* Recharts marks its chart surface — and individual elements like pie sectors —
+   focusable for keyboard a11y; suppress the global focus ring so tapping/clicking
+   a chart doesn't outline the container or a slice. */
+.recharts-wrapper:focus,
+.recharts-wrapper:focus-visible,
+.recharts-wrapper :focus,
+.recharts-wrapper :focus-visible {
+  outline: none;
+}
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;

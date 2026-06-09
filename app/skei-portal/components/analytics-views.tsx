@@ -75,7 +75,7 @@ export function OverviewView({
         />
       </section>
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.3fr_0.7fr]">
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.3fr_0.7fr] [&>*:only-child]:col-span-full">
         <ChartCard title="Monthly lead trend" icon={RiLineChartLine}>
           <MonthlyTrendChart data={analytics.monthly} />
         </ChartCard>
@@ -84,7 +84,7 @@ export function OverviewView({
         </ChartCard>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-3 [&>*:only-child]:col-span-full">
         <ChartCard title="Cost per lead by source" icon={RiBarChartBoxLine}>
           <SourceCostChart sources={analytics.sources} />
         </ChartCard>
@@ -102,7 +102,7 @@ export function OverviewView({
 export function AnalyticsView({ analytics }: { analytics: LeadAnalytics }) {
   return (
     <div className="space-y-5">
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-2 [&>*:only-child]:col-span-full">
         <ChartCard title="Monthly lead trend" icon={RiLineChartLine}>
           <MonthlyTrendChart data={analytics.monthly} tall />
         </ChartCard>
@@ -110,7 +110,7 @@ export function AnalyticsView({ analytics }: { analytics: LeadAnalytics }) {
           <SourceCostChart sources={analytics.sources} />
         </ChartCard>
       </section>
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-3 [&>*:only-child]:col-span-full">
         <ChartCard title="Lead quality score" icon={RiPieChartLine}>
           <QualityChart buckets={analytics.qualityBuckets} avg={analytics.avgQuality} />
         </ChartCard>

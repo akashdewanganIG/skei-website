@@ -119,7 +119,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body className="grain antialiased">
         {children}
-        <Toaster richColors position="bottom-center" />
+        <Toaster
+          richColors
+          position="bottom-center"
+          className="skei-toaster"
+          toastOptions={{ duration: 4000 }}
+        />
       </body>
     </html>
   );

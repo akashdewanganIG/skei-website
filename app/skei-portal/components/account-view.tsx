@@ -76,17 +76,17 @@ export function AccountView({ session }: { session: Session }) {
   return (
     <div className="space-y-5">
       <section className="rounded-lg border border-line bg-surface p-4 shadow-soft">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
-          <span className="grid h-12 w-12 place-items-center rounded-full bg-clay/12 text-sm font-bold text-clay">
-            {initials(session.name)}
-          </span>
-          <div>
-            <h2 className="text-base font-semibold text-fg">{session.name}</h2>
-            <p className="text-xs text-muted">{session.role}</p>
+            <span className="grid h-12 w-12 place-items-center rounded-full bg-clay/12 text-sm font-bold text-clay">
+              {initials(session.name)}
+            </span>
+            <div>
+              <h2 className="text-base font-semibold text-fg">{session.name}</h2>
+              <p className="text-xs text-muted">{session.role}</p>
+            </div>
           </div>
-          </div>
-          <dl className="grid flex-1 gap-3 text-sm md:grid-cols-3">
+          <dl className="grid gap-3 text-sm md:grid-cols-3">
             <InfoRow icon={RiUserLine} label="Username" value={session.username} />
             <InfoRow icon={RiMailLine} label="Email" value={session.email} />
             <InfoRow
@@ -103,7 +103,10 @@ export function AccountView({ session }: { session: Session }) {
           <h2 className="text-sm font-semibold text-fg">Update profile</h2>
           <p className="mt-1 text-xs text-muted">Update your account details below.</p>
         </div>
-        <form onSubmit={updateProfile} className="grid gap-3 p-4 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end">
+        <form
+          onSubmit={updateProfile}
+          className="grid gap-3 p-4 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end"
+        >
           <TextInput label="Name" value={name} onChange={setName} />
           <TextInput label="Username" value={username} onChange={setUsername} />
           <TextInput label="Email" type="email" value={email} onChange={setEmail} />
@@ -126,7 +129,10 @@ export function AccountView({ session }: { session: Session }) {
           <h2 className="text-sm font-semibold text-fg">Change password</h2>
           <p className="mt-1 text-xs text-muted">Password updates are saved to the database.</p>
         </div>
-        <form onSubmit={changePassword} className="grid gap-3 p-4 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end">
+        <form
+          onSubmit={changePassword}
+          className="grid gap-3 p-4 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end"
+        >
           <TextInput
             label="Current password"
             type="password"

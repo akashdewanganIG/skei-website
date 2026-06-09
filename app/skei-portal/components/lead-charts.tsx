@@ -1,6 +1,7 @@
 "use client";
 
 import type { ComponentType, ReactNode } from "react";
+import { Fragment, useEffect, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -11,6 +12,7 @@ import {
   Pie,
   PieChart,
   ResponsiveContainer,
+  Sector,
   Tooltip,
   XAxis,
   YAxis,
@@ -19,8 +21,138 @@ import type { LeadAnalytics } from "@/lib/lead-analytics";
 import { LEAD_STATUSES } from "@/types/lead";
 import { ORANGE_ACCENT } from "../portal-constants";
 import { formatCurrency, pct } from "../portal-utils";
-import { STATUS_META } from "../status";
+import { hexA, STATUS_META } from "../status";
 import { EmptyInline } from "./empty-states";
+
+// Theme-aware hover highlight for bar charts: a faint wash of the foreground
+// colour, so it stays subtle in both light and dark mode (the Recharts default
+// grey reads too dark on ivory and too light on the dark surface).
+const BAR_CURSOR = { fill: "color-mix(in srgb, var(--color-fg) 7%, transparent)" };
+
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setReduced(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+  return reduced;
+}
+
+// Diagonal woven fills, one pattern per colour: a bold gradient stripe paired
+// with a faint companion stripe over a soft tinted ground, so each shape reads
+// as its source colour with a bit of depth. The pattern slowly drifts along its
+// diagonal (disabled under prefers-reduced-motion).
+const STRIPE_TILE = 10;
+const stripeId = (prefix: string, color: string) => `${prefix}-${color.replace("#", "")}`;
+const stripeFill = (prefix: string, color: string) => `url(#${stripeId(prefix, color)})`;
+
+function StripeDefs({ prefix, colors }: { prefix: string; colors: string[] }) {
+  const reduced = usePrefersReducedMotion();
+  const unique = Array.from(new Set(colors));
+  return (
+    <defs>
+      {unique.map((color) => {
+        const id = stripeId(prefix, color);
+        return (
+          <Fragment key={id}>
+            <linearGradient id={`${id}-sheen`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity={1} />
+              <stop offset="100%" stopColor={color} stopOpacity={0.6} />
+            </linearGradient>
+            <pattern
+              id={id}
+              patternUnits="userSpaceOnUse"
+              width={STRIPE_TILE}
+              height={STRIPE_TILE}
+              patternTransform="rotate(45)"
+            >
+              <rect width={STRIPE_TILE} height={STRIPE_TILE} fill={hexA(color, 0.13)} />
+              <rect width={3} height={STRIPE_TILE} fill={`url(#${id}-sheen)`} />
+              <rect x={5.5} width={1.5} height={STRIPE_TILE} fill={hexA(color, 0.4)} />
+              {!reduced && (
+                <animateTransform
+                  attributeName="patternTransform"
+                  type="translate"
+                  from="0 0"
+                  to={`${STRIPE_TILE} 0`}
+                  dur="5s"
+                  repeatCount="indefinite"
+                  additive="sum"
+                />
+              )}
+            </pattern>
+          </Fragment>
+        );
+      })}
+    </defs>
+  );
+}
+
+// Pie hover states (v3 syncs these to the tooltip-active slice automatically):
+// the hovered slice keeps its size while the rest dim, so focus reads clearly
+// without the pie resizing. All fields are optional so the renderer stays
+// assignable to Recharts' richer PieSectorDataItem; we default geometry first.
+type SliceShape = {
+  cx?: number;
+  cy?: number;
+  innerRadius?: number;
+  outerRadius?: number;
+  startAngle?: number;
+  endAngle?: number;
+  fill?: string;
+};
+
+function activeSlice({
+  cx = 0,
+  cy = 0,
+  innerRadius = 0,
+  outerRadius = 0,
+  startAngle = 0,
+  endAngle = 0,
+  fill,
+}: SliceShape) {
+  return (
+    <Sector
+      cx={cx}
+      cy={cy}
+      innerRadius={innerRadius}
+      outerRadius={outerRadius}
+      startAngle={startAngle}
+      endAngle={endAngle}
+      fill={fill}
+      stroke="var(--color-surface)"
+      strokeWidth={2}
+    />
+  );
+}
+
+function inactiveSlice({
+  cx = 0,
+  cy = 0,
+  innerRadius = 0,
+  outerRadius = 0,
+  startAngle = 0,
+  endAngle = 0,
+  fill,
+}: SliceShape) {
+  return (
+    <Sector
+      cx={cx}
+      cy={cy}
+      innerRadius={innerRadius}
+      outerRadius={outerRadius}
+      startAngle={startAngle}
+      endAngle={endAngle}
+      fill={fill}
+      stroke="var(--color-surface)"
+      strokeWidth={2}
+      opacity={0.4}
+    />
+  );
+}
 
 export function ChartCard({
   title,
@@ -95,24 +227,17 @@ export function MonthlyTrendChart({
     Admitted: item.admitted,
   }));
   const maxLeads = Math.max(0, ...chartData.map((d) => d.Leads));
-  const topDomain = tall ? Math.max(6, maxLeads + Math.ceil(maxLeads * 0.25)) : Math.max(4, maxLeads);
+  const topDomain = tall
+    ? Math.max(6, maxLeads + Math.ceil(maxLeads * 0.25))
+    : Math.max(4, maxLeads);
   const tickCount = topDomain < 12 ? topDomain + 1 : 5;
 
   return (
-    <div className="flex h-full flex-col">
-      <div className={tall ? "min-h-[300px] flex-1" : "h-[230px]"}>
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className={`w-full flex-1 ${tall ? "min-h-[280px]" : "min-h-[200px]"}`}>
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 18, right: 26, left: 0, bottom: 8 }}>
-            <defs>
-              <linearGradient id="leadFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3f7cac" stopOpacity={0.32} />
-                <stop offset="95%" stopColor="#3f7cac" stopOpacity={0.02} />
-              </linearGradient>
-              <linearGradient id="admittedFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#2f8f5b" stopOpacity={0.28} />
-                <stop offset="95%" stopColor="#2f8f5b" stopOpacity={0.02} />
-              </linearGradient>
-            </defs>
+          <AreaChart data={chartData} margin={{ top: 12, right: 16, left: 0, bottom: 0 }}>
+            <StripeDefs prefix="stripe-trend" colors={["#3f7cac", "#2f8f5b"]} />
             <CartesianGrid stroke="var(--color-line)" strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="month"
@@ -138,22 +263,28 @@ export function MonthlyTrendChart({
               dataKey="Leads"
               stroke="#3f7cac"
               strokeWidth={2.5}
-              fill="url(#leadFill)"
+              fill={stripeFill("stripe-trend", "#3f7cac")}
+              fillOpacity={1}
               activeDot={{ r: 5, strokeWidth: 0, fill: "#3f7cac" }}
+              animationDuration={1100}
+              animationEasing="ease-out"
             />
             <Area
               type="monotone"
               dataKey="Admitted"
               stroke="#2f8f5b"
               strokeWidth={2}
-              fill="url(#admittedFill)"
+              fill={stripeFill("stripe-trend", "#2f8f5b")}
+              fillOpacity={1}
               activeDot={{ r: 4, strokeWidth: 0, fill: "#2f8f5b" }}
+              animationDuration={1100}
+              animationEasing="ease-out"
             />
           </AreaChart>
         </ResponsiveContainer>
       </div>
       <ChartLegend
-        className={`ml-[16px] ${tall ? "mt-2" : "mt-4"}`}
+        className="mt-3 shrink-0 pl-1"
         items={[
           { label: "Leads", color: "#3f7cac" },
           { label: "Admitted", color: "#2f8f5b" },
@@ -173,15 +304,15 @@ export function SourceCostChart({ sources }: { sources: LeadAnalytics["sources"]
       leads: source.leads,
       color: source.color,
     }));
-  const chartHeight = Math.max(330, chartData.length * 34 + 58);
   return (
-    <div className="min-h-[330px]" style={{ height: chartHeight }}>
+    <div className="h-full min-h-[300px] w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={chartData}
           layout="vertical"
-          margin={{ top: 10, right: 40, left: 18, bottom: 12 }}
+          margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
         >
+          <StripeDefs prefix="stripe-cost" colors={chartData.map((d) => d.color)} />
           <CartesianGrid stroke="var(--color-line)" strokeDasharray="3 3" horizontal={false} />
           <XAxis
             type="number"
@@ -216,10 +347,11 @@ export function SourceCostChart({ sources }: { sources: LeadAnalytics["sources"]
                 />
               );
             }}
+            cursor={BAR_CURSOR}
           />
-          <Bar dataKey="cpl" radius={[0, 8, 8, 0]} barSize={18}>
+          <Bar dataKey="cpl" maxBarSize={26} animationDuration={900} animationEasing="ease-out">
             {chartData.map((entry) => (
-              <Cell key={entry.name} fill={entry.color} />
+              <Cell key={entry.name} fill={stripeFill("stripe-cost", entry.color)} />
             ))}
           </Bar>
         </BarChart>
@@ -235,47 +367,61 @@ export function QualityChart({
   buckets: LeadAnalytics["qualityBuckets"];
   avg: number;
 }) {
+  const total = buckets.reduce((sum, b) => sum + b.value, 0);
   return (
-    <div className="grid grid-cols-1 items-center gap-5 sm:grid-cols-[150px_1fr]">
-      <div className="relative h-[150px]">
+    <div className="flex h-full min-h-[200px] flex-col gap-5">
+      <div className="mx-auto h-[210px] w-[210px] shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
+            <StripeDefs prefix="stripe-quality-pie" colors={buckets.map((b) => b.color)} />
             <Tooltip content={<ChartTooltip />} />
             <Pie
               data={buckets}
               dataKey="value"
               nameKey="label"
-              innerRadius={48}
-              outerRadius={68}
-              paddingAngle={4}
+              cx="50%"
+              cy="50%"
+              outerRadius="92%"
+              paddingAngle={1.5}
               stroke="var(--color-surface)"
-              strokeWidth={4}
+              strokeWidth={2}
+              activeShape={activeSlice}
+              inactiveShape={inactiveSlice}
+              animationDuration={800}
+              animationEasing="ease-out"
             >
               {buckets.map((bucket) => (
-                <Cell key={bucket.label} fill={bucket.color} />
+                <Cell key={bucket.label} fill={stripeFill("stripe-quality-pie", bucket.color)} />
               ))}
             </Pie>
           </PieChart>
         </ResponsiveContainer>
-        <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">
-          <div>
-            <div className="text-xl font-semibold leading-none text-fg">{pct(avg)}</div>
-            <div className="mt-1 text-[0.65rem] font-medium uppercase tracking-wide text-muted">
-              avg
-            </div>
-          </div>
-        </div>
       </div>
-      <div className="space-y-2">
-        {buckets.map((bucket) => (
-          <div key={bucket.label} className="flex items-center justify-between text-sm">
-            <span className="flex items-center gap-2 text-muted">
-              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: bucket.color }} />
-              {bucket.label}
-            </span>
-            <span className="font-semibold text-fg">{bucket.value}</span>
-          </div>
-        ))}
+      <div className="space-y-3 border-t border-line pt-4">
+        <div className="flex items-baseline gap-2">
+          <span className="text-2xl font-semibold leading-none text-fg">{pct(avg)}</span>
+          <span className="text-xs text-muted">avg score</span>
+        </div>
+        <ul className="space-y-2">
+          {buckets.map((bucket) => {
+            const share = total ? Math.round((bucket.value / total) * 100) : 0;
+            return (
+              <li key={bucket.label} className="flex items-center justify-between gap-3 text-sm">
+                <span className="flex items-center gap-2 text-fg">
+                  <span
+                    className="h-2.5 w-2.5 rounded-[3px]"
+                    style={{ backgroundColor: bucket.color }}
+                  />
+                  {bucket.label}
+                </span>
+                <span className="tabular-nums">
+                  <span className="font-semibold text-fg">{share}%</span>
+                  <span className="ml-1.5 text-muted">{bucket.value}</span>
+                </span>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </div>
   );
@@ -292,13 +438,14 @@ export function StatusFunnel({ analytics }: { analytics: LeadAnalytics }) {
     };
   });
   return (
-    <div className="h-[270px]">
+    <div className="h-full min-h-[260px] w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={chartData}
           layout="vertical"
-          margin={{ top: 10, right: 34, left: 16, bottom: 10 }}
+          margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
         >
+          <StripeDefs prefix="stripe-status" colors={chartData.map((d) => d.color)} />
           <CartesianGrid stroke="var(--color-line)" strokeDasharray="3 3" horizontal={false} />
           <XAxis
             type="number"
@@ -334,10 +481,11 @@ export function StatusFunnel({ analytics }: { analytics: LeadAnalytics }) {
                 />
               );
             }}
+            cursor={BAR_CURSOR}
           />
-          <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={16}>
+          <Bar dataKey="value" maxBarSize={22} animationDuration={900} animationEasing="ease-out">
             {chartData.map((entry) => (
-              <Cell key={entry.status} fill={entry.color} />
+              <Cell key={entry.status} fill={stripeFill("stripe-status", entry.color)} />
             ))}
           </Bar>
         </BarChart>
@@ -355,15 +503,15 @@ export function SourceQuality({ sources }: { sources: LeadAnalytics["sources"] }
       quality: Math.round(source.avgQuality),
       color: source.color,
     }));
-  const chartHeight = Math.max(330, chartData.length * 34 + 58);
   return (
-    <div className="min-h-[330px]" style={{ height: chartHeight }}>
+    <div className="h-full min-h-[300px] w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={chartData}
           layout="vertical"
-          margin={{ top: 10, right: 40, left: 18, bottom: 12 }}
+          margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
         >
+          <StripeDefs prefix="stripe-quality" colors={chartData.map((d) => d.color)} />
           <CartesianGrid stroke="var(--color-line)" strokeDasharray="3 3" horizontal={false} />
           <XAxis
             type="number"
@@ -395,10 +543,11 @@ export function SourceQuality({ sources }: { sources: LeadAnalytics["sources"] }
                 />
               );
             }}
+            cursor={BAR_CURSOR}
           />
-          <Bar dataKey="quality" radius={[0, 8, 8, 0]} barSize={18}>
+          <Bar dataKey="quality" maxBarSize={26} animationDuration={900} animationEasing="ease-out">
             {chartData.map((entry) => (
-              <Cell key={entry.name} fill={entry.color} />
+              <Cell key={entry.name} fill={stripeFill("stripe-quality", entry.color)} />
             ))}
           </Bar>
         </BarChart>
@@ -409,15 +558,15 @@ export function SourceQuality({ sources }: { sources: LeadAnalytics["sources"] }
 
 export function GradeDemand({ grades }: { grades: LeadAnalytics["grades"] }) {
   if (grades.length === 0) return <EmptyInline text="No grade data yet." />;
-  const chartHeight = Math.max(270, grades.length * 34 + 58);
   return (
-    <div className="min-h-[270px]" style={{ height: chartHeight }}>
+    <div className="h-full min-h-[260px] w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={grades}
           layout="vertical"
-          margin={{ top: 10, right: 34, left: 16, bottom: 12 }}
+          margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
         >
+          <StripeDefs prefix="stripe-grade" colors={[ORANGE_ACCENT]} />
           <CartesianGrid stroke="var(--color-line)" strokeDasharray="3 3" horizontal={false} />
           <XAxis
             type="number"
@@ -434,13 +583,14 @@ export function GradeDemand({ grades }: { grades: LeadAnalytics["grades"] }) {
             tickLine={false}
             tick={{ fill: "var(--color-muted)", fontSize: 11 }}
           />
-          <Tooltip content={<ChartTooltip />} />
+          <Tooltip content={<ChartTooltip />} cursor={BAR_CURSOR} />
           <Bar
             dataKey="count"
             name="Leads"
-            fill={ORANGE_ACCENT}
-            radius={[0, 8, 8, 0]}
-            barSize={18}
+            fill={stripeFill("stripe-grade", ORANGE_ACCENT)}
+            maxBarSize={26}
+            animationDuration={900}
+            animationEasing="ease-out"
           />
         </BarChart>
       </ResponsiveContainer>

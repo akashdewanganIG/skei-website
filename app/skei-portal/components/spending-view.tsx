@@ -2,8 +2,6 @@
 
 import { RiDeleteBinLine, RiSaveLine } from "@remixicon/react";
 import { type FormEvent, useMemo, useState } from "react";
-import { toast } from "sonner";
-import { campaignParentOptions } from "@/lib/campaign-attribution";
 import {
   Bar,
   BarChart,
@@ -14,6 +12,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { toast } from "sonner";
+import { campaignParentOptions } from "@/lib/campaign-attribution";
 import type { CampaignCategory, SelectOption, SpendLog } from "../portal-types";
 import { formatCurrency } from "../portal-utils";
 import { EmptyInline } from "./empty-states";
@@ -59,7 +59,7 @@ export function SpendingView({
   const [endDate, setEndDate] = useState("");
   const activeSource = parentOptions.some((option) => option.value === source)
     ? source
-    : parentOptions[0]?.value ?? "";
+    : (parentOptions[0]?.value ?? "");
 
   const selectedSource =
     parentOptions.find((option) => option.value === activeSource) ?? parentOptions[0];
@@ -138,7 +138,7 @@ export function SpendingView({
 
   return (
     <div className="space-y-5">
-      <section className="grid gap-4 xl:grid-cols-[0.72fr_1.28fr]">
+      <section className="grid gap-4 xl:grid-cols-[0.72fr_1.28fr] [&>*:only-child]:col-span-full">
         {canManage && (
           <div className="rounded-lg border border-line bg-surface shadow-soft">
             <div className="border-b border-line px-4 py-3">
