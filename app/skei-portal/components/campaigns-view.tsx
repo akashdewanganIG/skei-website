@@ -1,6 +1,12 @@
 "use client";
 
-import { RiAddLine, RiCloseCircleLine, RiDeleteBinLine, RiEditLine, RiSaveLine } from "@remixicon/react";
+import {
+  RiAddLine,
+  RiCloseCircleLine,
+  RiDeleteBinLine,
+  RiEditLine,
+  RiSaveLine,
+} from "@remixicon/react";
 import { type FormEvent, useMemo, useState } from "react";
 import { toast } from "sonner";
 import type { CampaignCategory } from "../portal-types";
@@ -36,6 +42,7 @@ export function CampaignsView({
   const [color, setColor] = useState(DEFAULT_COLOR);
   const [sourcesText, setSourcesText] = useState("");
   const [utmTagsDraft, setUtmTagsDraft] = useState<Record<string, string>>({});
+  const [adPlatform, setAdPlatform] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const sourcePreview = useMemo(() => splitSources(sourcesText), [sourcesText]);
@@ -52,12 +59,14 @@ export function CampaignsView({
     setColor(DEFAULT_COLOR);
     setSourcesText("");
     setUtmTagsDraft({});
+    setAdPlatform(false);
   };
 
   const startEdit = (category: CampaignCategory) => {
     setEditingId(category.id);
     setName(category.name);
     setColor(category.color);
+    setAdPlatform(category.adPlatform);
     setSourcesText(category.subcategories.join(", "));
     const targets = category.subcategories.length > 0 ? category.subcategories : [category.name];
     setUtmTagsDraft(
@@ -89,6 +98,7 @@ export function CampaignsView({
           color,
           subcategories: campaignSources,
           utmTags,
+          adPlatform,
         }),
       });
       const data = await response.json().catch(() => ({}));
@@ -183,6 +193,16 @@ export function CampaignsView({
               </label>
             </div>
 
+            <label className="flex items-center gap-2 text-sm text-fg">
+              <input
+                type="checkbox"
+                checked={adPlatform}
+                onChange={(event) => setAdPlatform(event.target.checked)}
+                className="h-4 w-4 rounded border-line accent-[var(--color-clay,#d9481e)]"
+              />
+              Paid ad platform — show this group in Spending → Automation
+            </label>
+
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               {sourcePreview.length > 0 && (
                 <div className="flex min-h-10 flex-1 flex-wrap items-center gap-2 rounded-lg border border-line bg-bg/35 px-3 py-2">
@@ -233,7 +253,9 @@ export function CampaignsView({
       <section className="rounded-lg border border-line bg-surface shadow-soft">
         <div className="border-b border-line px-4 py-3">
           <h2 className="text-sm font-semibold text-fg">Campaign groups</h2>
-          <p className="mt-1 text-xs text-muted">These groups power lead filters and spend charts.</p>
+          <p className="mt-1 text-xs text-muted">
+            These groups power lead filters and spend charts.
+          </p>
         </div>
         <div className="divide-y divide-line">
           {categories.length === 0 ? (
@@ -245,9 +267,17 @@ export function CampaignsView({
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-fg">{category.name}</span>
+                      {category.adPlatform && (
+                        <span className="rounded-md bg-clay/10 px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase text-clay">
+                          Paid Ad platform
+                        </span>
+                      )}
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {(category.subcategories.length > 0 ? category.subcategories : [category.name]).map((source) => (
+                      {(category.subcategories.length > 0
+                        ? category.subcategories
+                        : [category.name]
+                      ).map((source) => (
                         <span
                           key={source}
                           className="rounded-md border border-line bg-bg/60 px-1.5 py-0.5 text-[0.65rem] uppercase text-fg"

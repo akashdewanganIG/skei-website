@@ -6,6 +6,8 @@ export type CampaignCategory = {
   color: string;
   subcategories: string[];
   utmTags: Record<string, string[]>;
+  /** Paid ad platform — eligible for spend automation. */
+  adPlatform: boolean;
 };
 
 export type CampaignSource = {
@@ -36,12 +38,42 @@ const FALLBACK_SOURCE: CampaignSource = {
   utmTags: [],
 };
 
+// A search-engine referrer with no campaign tags is a free (organic) lead.
+// It maps to a campaign group named "Organic …" when one exists, otherwise to
+// this built-in bucket — never to a paid ad-platform group.
+const ORGANIC_SEARCH_SOURCE: CampaignSource = {
+  name: "Organic Search",
+  parent: "Organic Search",
+  color: "#2f8f5b",
+  utmTags: [],
+};
+
+const SEARCH_ENGINE_HOST = /(^|\.)(google|bing|duckduckgo|yahoo|ecosia|baidu|yandex|startpage)\./i;
+
+function isSearchEngineReferrer(referrer: string): boolean {
+  let host = referrer;
+  try {
+    host = new URL(referrer).hostname;
+  } catch {
+    // Not a parseable URL — test the raw value.
+  }
+  return SEARCH_ENGINE_HOST.test(host);
+}
+
+function organicSearchSource(categories?: readonly CampaignCategory[] | null): CampaignSource {
+  const group = (categories ?? []).find((category) => /organic/i.test(category.name));
+  if (!group) return ORGANIC_SEARCH_SOURCE;
+  return { name: group.name, parent: group.name, color: group.color, utmTags: [] };
+}
+
 function normalize(value: string): string {
   return value.trim().toLowerCase();
 }
 
 function normalizeKey(value: string): string {
-  return normalize(value).replace(/[^a-z0-9]+/g, " ").trim();
+  return normalize(value)
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 }
 
 function compactKey(value: string): string {
@@ -67,14 +99,19 @@ function findCampaignSource(
   value: string,
   categories?: readonly CampaignCategory[] | null,
 ): CampaignSource | null {
-  return campaignSourcesFromCategories(categories).find((source) => matchesCampaignValue(source, value)) ?? null;
+  return (
+    campaignSourcesFromCategories(categories).find((source) =>
+      matchesCampaignValue(source, value),
+    ) ?? null
+  );
 }
 
 export function campaignSourcesFromCategories(
   categories?: readonly CampaignCategory[] | null,
 ): CampaignSource[] {
   return (categories ?? []).flatMap((category) => {
-    const subcategories = category.subcategories.length > 0 ? category.subcategories : [category.name];
+    const subcategories =
+      category.subcategories.length > 0 ? category.subcategories : [category.name];
     return subcategories.map((subcategory) => ({
       name: subcategory,
       parent: category.name,
@@ -114,22 +151,35 @@ export function inferSourceFromAttribution(
   attribution: LeadAttribution,
   categories?: readonly CampaignCategory[] | null,
 ): CampaignSource {
-  const values = [
+  // Most specific signal first: an explicit ?source= param, then the campaign
+  // name, then platform-level values — so a source tagged with its campaign
+  // name wins over a generic platform catch-all tag like "google".
+  const campaignTags = [
     attribution.source,
+    attribution.utmCampaign,
     attribution.utmSource,
     attribution.utmMedium,
-    attribution.utmCampaign,
     attribution.utmTerm,
     attribution.utmContent,
-    attribution.referrer,
-    attribution.comment,
   ]
     .map((value) => value?.trim())
     .filter((value): value is string => Boolean(value));
 
-  for (const value of values) {
+  for (const value of [...campaignTags, attribution.comment?.trim() ?? ""]) {
+    if (!value) continue;
     const source = findCampaignSource(value, categories);
     if (source) return source;
+  }
+
+  // The referrer is used when the visit carried no campaign tags at all.
+  // Search-engine referrers count as organic search; any other referrer
+  // attributes to whichever group it matches — came from Instagram, counts
+  // as Instagram.
+  const referrer = attribution.referrer?.trim() ?? "";
+  if (campaignTags.length === 0 && referrer) {
+    if (isSearchEngineReferrer(referrer)) return organicSearchSource(categories);
+    const referrerMatch = findCampaignSource(referrer, categories);
+    if (referrerMatch) return referrerMatch;
   }
 
   return FALLBACK_SOURCE;

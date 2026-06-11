@@ -27,7 +27,7 @@ import { EmptyInline } from "./empty-states";
 // Theme-aware hover highlight for bar charts: a faint wash of the foreground
 // colour, so it stays subtle in both light and dark mode (the Recharts default
 // grey reads too dark on ivory and too light on the dark surface).
-const BAR_CURSOR = { fill: "color-mix(in srgb, var(--color-fg) 7%, transparent)" };
+export const BAR_CURSOR = { fill: "color-mix(in srgb, var(--color-fg) 7%, transparent)" };
 
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -47,9 +47,9 @@ function usePrefersReducedMotion() {
 // diagonal (disabled under prefers-reduced-motion).
 const STRIPE_TILE = 10;
 const stripeId = (prefix: string, color: string) => `${prefix}-${color.replace("#", "")}`;
-const stripeFill = (prefix: string, color: string) => `url(#${stripeId(prefix, color)})`;
+export const stripeFill = (prefix: string, color: string) => `url(#${stripeId(prefix, color)})`;
 
-function StripeDefs({ prefix, colors }: { prefix: string; colors: string[] }) {
+export function StripeDefs({ prefix, colors }: { prefix: string; colors: string[] }) {
   const reduced = usePrefersReducedMotion();
   const unique = Array.from(new Set(colors));
   return (

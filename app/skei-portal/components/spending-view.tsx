@@ -18,6 +18,8 @@ import type { CampaignCategory, SelectOption, SpendLog } from "../portal-types";
 import { formatCurrency } from "../portal-utils";
 import { EmptyInline } from "./empty-states";
 import { SelectField, TextInput } from "./form-fields";
+import { BAR_CURSOR, StripeDefs, stripeFill } from "./lead-charts";
+import { SpendingAutomation } from "./spending-automation";
 
 type DurationMode = "all" | "custom";
 
@@ -118,6 +120,16 @@ export function SpendingView({
       toast.error(error instanceof Error ? error.message : "Failed to log spend.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const reloadLogs = async () => {
+    try {
+      const response = await fetch("/api/admin/marketing-spends", { cache: "no-store" });
+      const data = await response.json().catch(() => ({}));
+      if (response.ok && Array.isArray(data.spends)) onLogsUpdate(data.spends as SpendLog[]);
+    } catch {
+      // Ledger refresh is best-effort; the next dashboard load picks it up.
     }
   };
 
@@ -262,6 +274,8 @@ export function SpendingView({
           </table>
         </div>
       </section>
+
+      {canManage && <SpendingAutomation categories={categories} onSpendsChanged={reloadLogs} />}
     </div>
   );
 }
@@ -279,6 +293,7 @@ function SpendingChart({ data }: { data: { name: string; amount: number; color: 
     <div className="h-[300px]">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 12, right: 28, left: 12, bottom: 8 }}>
+          <StripeDefs prefix="stripe-spend" colors={data.map((entry) => entry.color)} />
           <CartesianGrid stroke="var(--color-line)" strokeDasharray="3 3" vertical={false} />
           <XAxis
             dataKey="name"
@@ -294,7 +309,7 @@ function SpendingChart({ data }: { data: { name: string; amount: number; color: 
             tick={{ fill: "var(--color-muted)", fontSize: 11 }}
           />
           <Tooltip
-            cursor={{ fill: "rgba(217,72,30,0.06)" }}
+            cursor={BAR_CURSOR}
             content={({ active, payload, label }) => {
               if (!active || !payload?.length) return null;
               return (
@@ -310,9 +325,9 @@ function SpendingChart({ data }: { data: { name: string; amount: number; color: 
               );
             }}
           />
-          <Bar dataKey="amount" radius={[8, 8, 0, 0]} barSize={34}>
+          <Bar dataKey="amount" barSize={34} animationDuration={900} animationEasing="ease-out">
             {data.map((entry) => (
-              <Cell key={entry.name} fill={entry.color} />
+              <Cell key={entry.name} fill={stripeFill("stripe-spend", entry.color)} />
             ))}
           </Bar>
         </BarChart>

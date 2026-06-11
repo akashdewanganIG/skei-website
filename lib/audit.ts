@@ -1,7 +1,6 @@
 import { desc } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { type AuditLogRow, auditLogs } from "@/lib/db/schema";
-import type { Session } from "@/types/lead";
 
 export type AuditLogSummary = {
   id: string;
@@ -39,7 +38,10 @@ function toSummary(row: AuditLogRow): AuditLogSummary {
   };
 }
 
-export async function recordAuditLog(session: Session, input: AuditInput): Promise<void> {
+/** Actor is a Session for user actions, or a synthetic identity for integrations. */
+type AuditActor = { username: string; name: string; role: string };
+
+export async function recordAuditLog(session: AuditActor, input: AuditInput): Promise<void> {
   try {
     await db.insert(auditLogs).values({
       actorUsername: session.username,

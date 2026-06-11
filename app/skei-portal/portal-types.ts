@@ -71,3 +71,22 @@ export type SpendLog = {
   createdAt: string;
   addedBy: string;
 };
+
+export type SpendConnection = {
+  id: string;
+  name: string;
+  source: string;
+  keyPrefix: string;
+  createdAt: string;
+  createdBy: string;
+  lastUsedAt: string | null;
+};
+
+export type MetaSyncStatus = {
+  enabled: boolean;
+  adAccountId: string;
+  source: string;
+  hasToken: boolean;
+  lastSyncedAt: string;
+  lastSyncError: string;
+};

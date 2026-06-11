@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { recordAuditLog } from "@/lib/audit";
 import { hasPermission } from "@/lib/auth/permissions";
@@ -6,7 +7,6 @@ import { listCampaignCategories } from "@/lib/campaigns";
 import { db } from "@/lib/db";
 import { leadCategories } from "@/lib/db/schema";
 import { getTrimmedString } from "@/lib/validation";
-import { eq } from "drizzle-orm";
 
 export const runtime = "nodejs";
 
@@ -63,7 +63,10 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
   if (!canReadCampaignData(session)) {
-    return NextResponse.json({ error: "You do not have permission to view campaigns." }, { status: 403 });
+    return NextResponse.json(
+      { error: "You do not have permission to view campaigns." },
+      { status: 403 },
+    );
   }
 
   try {
@@ -81,7 +84,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
   if (!hasPermission(session, "manage_campaigns")) {
-    return NextResponse.json({ error: "You do not have permission to manage campaigns." }, { status: 403 });
+    return NextResponse.json(
+      { error: "You do not have permission to manage campaigns." },
+      { status: 403 },
+    );
   }
 
   try {
@@ -101,6 +107,7 @@ export async function POST(request: Request) {
         color: getTrimmedString(body, "color") || "#d9481e",
         subcategories,
         utmTags,
+        adPlatform: body.adPlatform === true,
       })
       .returning();
 
@@ -109,13 +116,16 @@ export async function POST(request: Request) {
       entityType: "settings",
       entityId: inserted[0].id,
       summary: `Added campaign group ${name}`,
-      metadata: { subcategories, utmTags },
+      metadata: { subcategories, utmTags, adPlatform: body.adPlatform === true },
     });
 
     return NextResponse.json({ ok: true, category: inserted[0] });
   } catch (error) {
     if (typeof error === "object" && error && "code" in error && error.code === "23505") {
-      return NextResponse.json({ error: "A campaign group with this name already exists." }, { status: 409 });
+      return NextResponse.json(
+        { error: "A campaign group with this name already exists." },
+        { status: 409 },
+      );
     }
     console.error("Failed to add campaign category:", error);
     return NextResponse.json({ error: "Could not add campaign group." }, { status: 500 });
@@ -128,7 +138,10 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
   if (!hasPermission(session, "manage_campaigns")) {
-    return NextResponse.json({ error: "You do not have permission to manage campaigns." }, { status: 403 });
+    return NextResponse.json(
+      { error: "You do not have permission to manage campaigns." },
+      { status: 403 },
+    );
   }
 
   try {
@@ -149,6 +162,7 @@ export async function PUT(request: Request) {
         color: getTrimmedString(body, "color") || "#d9481e",
         subcategories,
         utmTags,
+        adPlatform: body.adPlatform === true,
       })
       .where(eq(leadCategories.id, id))
       .returning();
@@ -158,7 +172,7 @@ export async function PUT(request: Request) {
       entityType: "settings",
       entityId: id,
       summary: `Updated campaign group ${name}`,
-      metadata: { subcategories, utmTags },
+      metadata: { subcategories, utmTags, adPlatform: body.adPlatform === true },
     });
 
     return NextResponse.json({ ok: true, category: updated[0] });
@@ -174,7 +188,10 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
   if (!hasPermission(session, "manage_campaigns")) {
-    return NextResponse.json({ error: "You do not have permission to manage campaigns." }, { status: 403 });
+    return NextResponse.json(
+      { error: "You do not have permission to manage campaigns." },
+      { status: 403 },
+    );
   }
 
   try {

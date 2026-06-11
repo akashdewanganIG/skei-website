@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import Image from "next/image";
 import { motion, useAnimationControls } from "framer-motion";
-import EnquiryForm from "../enquiry-form";
-import { EASE, containerVariants, itemVariants } from "@/lib/animations";
-import { ENQUIRY_ID, ENQUIRY_FOCUS_EVENT } from "@/lib/constants";
+import Image from "next/image";
+import { useEffect, useRef } from "react";
+import { containerVariants, EASE, itemVariants } from "@/lib/animations";
+import { ENQUIRY_FOCUS_EVENT, ENQUIRY_ID } from "@/lib/constants";
 import heroBg from "@/public/gallery/sports-field.jpg";
+import EnquiryForm from "../enquiry-form";
 
 const STATS: { value: string; prefix?: string; accent?: string; label: string }[] = [
   { value: "1931", label: "Established" },
@@ -115,9 +115,9 @@ export default function Hero() {
               className="mt-5 max-w-xl text-base leading-relaxed text-pretty text-ivory/85 sm:mt-6 sm:text-[1.05rem]"
             >
               Tucked in Vasanth Nagar, in the shade of trees older than the city&apos;s skyline,
-              SKEI has been a place of quiet, deliberate education for decades. Our CBSE
-              curriculum, from Nursery through Grade 10, is taught not as a race to results but as
-              an invitation to think, question, and discover.
+              SKEI has been a place of quiet, deliberate education for decades. Our CBSE curriculum,
+              from Nursery through Grade 10, is taught not as a race to results but as an invitation
+              to think, question, and discover.
             </motion.p>
 
             <motion.dl
@@ -149,7 +149,7 @@ export default function Hero() {
             id={ENQUIRY_ID}
             initial={{ opacity: 0, x: 30 }}
             animate={formControls}
-            className="mx-auto w-full max-w-lg scroll-mt-28 rounded-2xl shadow-[0_30px_70px_-25px_rgba(0,0,0,0.55)] lg:mr-0"
+            className="mx-auto w-full max-w-lg scroll-mt-28 rounded-2xl shadow-[0_30px_70px_-25px_rgba(0,0,0,0.55)] lg:-mt-10 lg:mr-0"
           >
             <EnquiryForm />
           </motion.div>

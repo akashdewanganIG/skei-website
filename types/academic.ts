@@ -5,6 +5,6 @@ export interface Program {
   subtitle: string;
   desc: string;
   icon: ElementType;
-  /** Bolder, more detailed icon used as the faded watermark in the card. */
-  bgIcon?: ElementType;
+  /** 3D illustration shown in the card's tinted side panel. */
+  image: string;
 }

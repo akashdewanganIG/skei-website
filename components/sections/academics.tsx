@@ -1,15 +1,16 @@
 "use client";
 
+import { RiArrowRightLine } from "@remixicon/react";
 import { motion } from "framer-motion";
-import { Reveal } from "../reveal";
-
-import { PROGRAMS } from "../../data/academics";
+import Image from "next/image";
 import { EASE } from "@/lib/animations";
+import { PROGRAMS } from "../../data/academics";
+import { Reveal } from "../reveal";
 
 export default function Academics() {
   return (
     <section id="academics" className="relative z-30 bg-bg pt-9 pb-18 sm:pt-12 sm:pb-24">
-      <div className="mx-auto max-w-[85rem] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[93rem] px-4 sm:px-6 lg:px-8">
         <Reveal className="flex flex-col items-center text-center">
           <div className="mb-4 text-eyebrow text-clay">Curriculum</div>
           <h2 className="text-h2 text-fg">A Journey from First Steps to Grade 10</h2>
@@ -27,10 +28,9 @@ export default function Academics() {
           viewport={{ once: true, margin: "0px 0px -10% 0px" }}
           variants={{ hidden: {}, show: { transition: { staggerChildren: 0.14 } } }}
         >
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {PROGRAMS.map((p) => {
               const Icon = p.icon;
-              const BgIcon = p.bgIcon ?? p.icon;
 
               return (
                 <motion.article
@@ -39,30 +39,40 @@ export default function Academics() {
                     hidden: { opacity: 0, y: 24 },
                     show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE } },
                   }}
-                  className="group relative flex h-full flex-col rounded-2xl bg-surface p-5 shadow-soft ring-1 ring-line/70 transition-all duration-500 hover:-translate-y-2 hover:shadow-lift hover:ring-clay/30 sm:p-6"
+                  className="group relative flex h-full overflow-hidden rounded-2xl bg-surface shadow-soft ring-1 ring-line/70 transition-all duration-500 hover:-translate-y-2 hover:shadow-lift hover:ring-clay/30"
                 >
-                  {/* Clay header — ambient icon */}
-                  <div className="relative h-28 w-full overflow-hidden rounded-xl bg-clay shadow-sm">
-                    {/* subtle depth so the clay isn't a flat fill */}
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.08] to-black/[0.10]" />
-                    {/* ambient decorative icon */}
-                    <BgIcon className="pointer-events-none absolute -right-5 -bottom-7 h-36 w-36 stroke-[0.5] text-white/25 blur-[2.5px] transition-transform duration-700 group-hover:scale-110 group-hover:-rotate-6" />
-                  </div>
+                  {/* Left — content */}
+                  <div className="flex min-w-0 flex-1 flex-col p-5">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-clay/10">
+                      <Icon className="h-[1.35rem] w-[1.35rem] stroke-[1.5] text-clay" />
+                    </div>
 
-                  {/* Crisp icon chip — bridges the clay header and the body */}
-                  <div className="relative -mt-7 ml-1 flex h-14 w-14 items-center justify-center rounded-2xl bg-surface shadow-soft ring-1 ring-line/70 transition-all duration-500 group-hover:-translate-y-1 group-hover:ring-clay/40">
-                    <Icon className="h-7 w-7 stroke-[1.5] text-clay" />
-                  </div>
-
-                  {/* Body */}
-                  <div className="mt-4 flex flex-1 flex-col">
-                    <div className="mb-2 text-[0.7rem] font-bold uppercase tracking-widest text-clay/80">
+                    <div className="mt-5 text-[0.66rem] font-bold uppercase tracking-widest text-clay">
                       {p.subtitle}
                     </div>
-                    <h3 className="font-display text-[1.6rem] leading-[1.1] tracking-tight text-fg transition-colors duration-300 group-hover:text-clay">
+                    <h3 className="mt-1 font-display text-[1.4rem] leading-[1.1] tracking-tight text-fg transition-colors duration-300 group-hover:text-clay">
                       {p.title}
                     </h3>
-                    <p className="mt-3 text-[0.95rem] leading-relaxed text-muted/90">{p.desc}</p>
+                    <p className="mt-2.5 text-[0.83rem] leading-[1.5] text-muted/90">{p.desc}</p>
+
+                    <a
+                      href="#top"
+                      className="mt-auto inline-flex items-center gap-1.5 pt-4 text-[0.85rem] font-semibold text-clay transition-colors hover:text-clay-deep"
+                    >
+                      Explore Program
+                      <RiArrowRightLine className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    </a>
+                  </div>
+
+                  {/* Right — tinted illustration panel (tint is baked into the art) */}
+                  <div className="relative w-[40%] shrink-0 self-stretch bg-[#fcebdd]">
+                    <Image
+                      src={p.image}
+                      alt=""
+                      fill
+                      unoptimized
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
                   </div>
                 </motion.article>
               );

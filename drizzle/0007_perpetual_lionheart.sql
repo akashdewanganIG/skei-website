@@ -1,0 +1,1 @@
+ALTER TABLE "lead_categories" ADD COLUMN "ad_platform" boolean DEFAULT false NOT NULL;

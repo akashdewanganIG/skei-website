@@ -1,11 +1,12 @@
-import { NextResponse } from "next/server";
 import { desc, eq } from "drizzle-orm";
+import { NextResponse } from "next/server";
 import { recordAuditLog } from "@/lib/audit";
 import { hasPermission } from "@/lib/auth/permissions";
 import { getSession } from "@/lib/auth/session";
 import { hasCampaignParent, listCampaignCategories } from "@/lib/campaigns";
 import { db } from "@/lib/db";
 import { marketingSpends } from "@/lib/db/schema";
+import { syncMetaSpend } from "@/lib/meta-spend";
 import { getTrimmedString } from "@/lib/validation";
 
 export const runtime = "nodejs";
@@ -21,10 +22,17 @@ export async function GET() {
     !hasPermission(session, "view_spending") &&
     !hasPermission(session, "manage_spending")
   ) {
-    return NextResponse.json({ error: "You do not have permission to view spending." }, { status: 403 });
+    return NextResponse.json(
+      { error: "You do not have permission to view spending." },
+      { status: 403 },
+    );
   }
 
   try {
+    // Piggyback the Meta auto-sync on dashboard loads (no-op unless the
+    // sync is enabled and stale) so spend stays current without a cron.
+    await syncMetaSpend().catch(() => {});
+
     const rows = await db.select().from(marketingSpends).orderBy(desc(marketingSpends.date));
     return NextResponse.json({ spends: rows });
   } catch (error) {
@@ -39,7 +47,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
   if (!hasPermission(session, "manage_spending")) {
-    return NextResponse.json({ error: "You do not have permission to manage spending." }, { status: 403 });
+    return NextResponse.json(
+      { error: "You do not have permission to manage spending." },
+      { status: 403 },
+    );
   }
 
   let body: Record<string, unknown>;
@@ -55,11 +66,23 @@ export async function POST(request: Request) {
   const date = new Date(dateValue);
   const categories = await listCampaignCategories();
 
-  if (!source || !Number.isFinite(amount) || amount <= 0 || !dateValue || Number.isNaN(date.getTime())) {
-    return NextResponse.json({ error: "Campaign group, amount, and date are required." }, { status: 400 });
+  if (
+    !source ||
+    !Number.isFinite(amount) ||
+    amount <= 0 ||
+    !dateValue ||
+    Number.isNaN(date.getTime())
+  ) {
+    return NextResponse.json(
+      { error: "Campaign group, amount, and date are required." },
+      { status: 400 },
+    );
   }
   if (!hasCampaignParent(categories, source)) {
-    return NextResponse.json({ error: "Choose a campaign group from Campaigns first." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Choose a campaign group from Campaigns first." },
+      { status: 400 },
+    );
   }
 
   try {
@@ -94,7 +117,10 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
   if (!hasPermission(session, "manage_spending")) {
-    return NextResponse.json({ error: "You do not have permission to manage spending." }, { status: 403 });
+    return NextResponse.json(
+      { error: "You do not have permission to manage spending." },
+      { status: 403 },
+    );
   }
 
   try {
@@ -102,7 +128,10 @@ export async function DELETE(request: Request) {
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
 
-    const [deleted] = await db.delete(marketingSpends).where(eq(marketingSpends.id, id)).returning();
+    const [deleted] = await db
+      .delete(marketingSpends)
+      .where(eq(marketingSpends.id, id))
+      .returning();
     if (!deleted) {
       return NextResponse.json({ error: "Spend log not found." }, { status: 404 });
     }
