@@ -31,6 +31,7 @@ import { AnalyticsView, OverviewView } from "./components/analytics-views";
 import { CampaignsView } from "./components/campaigns-view";
 import { LeadsView } from "./components/leads-view";
 import { LogsView } from "./components/logs-view";
+import { ImportCsvDialog } from "./components/import-csv-dialog";
 import { ManualLeadDialog } from "./components/manual-lead-dialog";
 import { MobileNavButton, type NavItem, SidebarButton } from "./components/navigation";
 import { SpendingView } from "./components/spending-view";
@@ -46,7 +47,7 @@ import type {
   SpendLog,
   View,
 } from "./portal-types";
-import { greetingFor, initials, toCsv } from "./portal-utils";
+import { greetingFor, initials, parseCsv, toCsv } from "./portal-utils";
 
 export function Dashboard({
   session,
@@ -82,6 +83,7 @@ export function Dashboard({
   const [leadSection, setLeadSection] = useState<LeadSection>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [addingLead, setAddingLead] = useState(false);
+  const [importPreview, setImportPreview] = useState<{ file: File; rows: Record<string, string>[] } | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [marketingLogs, setMarketingLogs] = useState<SpendLog[]>([]);
   const [categories, setCategories] = useState<CampaignCategory[]>([]);
@@ -305,6 +307,43 @@ export function Dashboard({
     URL.revokeObjectURL(url);
   }, [sectionedLeads]);
 
+  const handleFileSelect = useCallback(async (file: File) => {
+    let text: string;
+    try {
+      text = await file.text();
+    } catch {
+      toast.error("Could not read the file.");
+      return;
+    }
+    const rows = parseCsv(text);
+    if (rows.length === 0) {
+      toast.error("No data rows found in the CSV file.");
+      return;
+    }
+    setImportPreview({ file, rows });
+  }, []);
+
+  const handleImportConfirm = useCallback(async () => {
+    if (!importPreview) return;
+    const { rows } = importPreview;
+    const res = await fetch("/api/admin/leads/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rows }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "Import failed.");
+    const { imported, skipped } = data as { imported: number; skipped: number };
+    if (imported === 0) {
+      toast.warning(`No new leads imported — all ${skipped} row${skipped !== 1 ? "s" : ""} were duplicates or invalid.`);
+    } else {
+      toast.success(
+        `${imported} lead${imported !== 1 ? "s" : ""} imported${skipped > 0 ? `, ${skipped} skipped (duplicates/invalid)` : ""}.`,
+      );
+    }
+    await refresh();
+  }, [importPreview, refresh]);
+
   return (
     <div className="min-h-dvh bg-bg text-fg">
       <div className="flex min-h-dvh">
@@ -425,9 +464,11 @@ export function Dashboard({
                 refresh={refresh}
                 addLead={() => setAddingLead(true)}
                 exportCsv={exportCsv}
+                importCsv={handleFileSelect}
                 canAddLead={view === "leads" && canEditDetails}
                 canExport={canExportLeads}
                 exportDisabled={sectionedLeads.length === 0}
+                canImport={view === "leads" && canEditDetails}
               />
             )}
 
@@ -503,6 +544,14 @@ export function Dashboard({
             await createManualLead(draft);
             setAddingLead(false);
           }}
+        />
+      )}
+      {importPreview && (
+        <ImportCsvDialog
+          file={importPreview.file}
+          rows={importPreview.rows}
+          onConfirm={handleImportConfirm}
+          onClose={() => setImportPreview(null)}
         />
       )}
     </div>

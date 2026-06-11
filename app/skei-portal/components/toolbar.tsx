@@ -5,9 +5,10 @@ import {
   RiDownloadLine,
   RiRefreshLine,
   RiSearchLine,
+  RiUploadLine,
   RiUserAddLine,
 } from "@remixicon/react";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { Select } from "@/components/ui/select";
 import type { CampaignSourceFilter } from "@/lib/campaign-attribution";
 import { STATUS_FILTER_OPTIONS } from "../portal-constants";
@@ -31,9 +32,11 @@ export function Toolbar({
   refresh,
   addLead,
   exportCsv,
+  importCsv,
   canAddLead,
   canExport,
   exportDisabled,
+  canImport,
 }: {
   search: string;
   setSearch: (value: string) => void;
@@ -52,10 +55,14 @@ export function Toolbar({
   refresh: () => void;
   addLead?: () => void;
   exportCsv: () => void;
+  importCsv?: (file: File) => void;
   canAddLead: boolean;
   canExport: boolean;
   exportDisabled: boolean;
+  canImport: boolean;
 }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const statusSelectValue =
     STATUS_FILTER_OPTIONS.find((option) => option.value === statusFilter) ??
     STATUS_FILTER_OPTIONS[0];
@@ -74,6 +81,17 @@ export function Toolbar({
 
   return (
     <section className="mb-5 flex flex-col gap-2 border-b border-line pb-5">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".csv"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file && importCsv) importCsv(file);
+          e.target.value = "";
+        }}
+      />
       <div className="relative w-full">
         <RiSearchLine className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted/60" />
         <input
@@ -140,6 +158,16 @@ export function Toolbar({
           <RiRefreshLine className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
           Refresh
         </button>
+        {canImport && (
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-clay px-4 text-sm font-semibold text-ivory transition-colors hover:bg-clay-deep"
+          >
+            <RiUploadLine className="h-4 w-4" />
+            Import CSV
+          </button>
+        )}
         {canExport && (
           <button
             type="button"
