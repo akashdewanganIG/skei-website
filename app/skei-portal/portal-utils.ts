@@ -43,6 +43,53 @@ export function toCsv(leads: Lead[]): string {
   return [header, ...rows].join("\r\n");
 }
 
+export function parseCsv(text: string): Record<string, string>[] {
+  function parseRow(line: string): string[] {
+    const fields: string[] = [];
+    let i = 0;
+    while (i < line.length) {
+      if (line[i] === '"') {
+        let field = "";
+        i++;
+        while (i < line.length) {
+          if (line[i] === '"') {
+            if (i + 1 < line.length && line[i + 1] === '"') {
+              field += '"';
+              i += 2;
+            } else {
+              i++;
+              break;
+            }
+          } else {
+            field += line[i++];
+          }
+        }
+        fields.push(field);
+        if (line[i] === ",") i++;
+      } else {
+        const end = line.indexOf(",", i);
+        if (end === -1) {
+          fields.push(line.slice(i));
+          break;
+        }
+        fields.push(line.slice(i, end));
+        i = end + 1;
+      }
+    }
+    if (line.endsWith(",")) fields.push("");
+    return fields;
+  }
+
+  const lines = text.split(/\r?\n/).filter((l) => l.trim() !== "");
+  if (lines.length < 2) return [];
+
+  const headers = parseRow(lines[0]);
+  return lines.slice(1).map((line) => {
+    const values = parseRow(line);
+    return Object.fromEntries(headers.map((h, idx) => [h, values[idx] ?? ""]));
+  });
+}
+
 export function formatCurrency(value: number): string {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
