@@ -123,11 +123,7 @@ function LeadTable({
             return (
               <tr
                 key={lead.id}
-                onClick={(event) => {
-                  const target = event.target as HTMLElement;
-                  if (target.closest("[data-row-interactive]")) return;
-                  onOpen(lead.id);
-                }}
+                onClick={() => onOpen(lead.id)}
                 className="cursor-pointer border-b border-line/70 transition-colors last:border-0 hover:bg-bg/55"
               >
                 <td className="px-4 py-3">
@@ -156,7 +152,9 @@ function LeadTable({
                 <td className="whitespace-nowrap px-4 py-3 text-muted">
                   {lead.submit_date || "-"}
                 </td>
-                <td className="px-4 py-3" data-row-interactive="true">
+                {/* The Select menu portals to document.body, so the click still bubbles
+                    through React's tree to the row — stop it here instead. */}
+                <td className="px-4 py-3" onClick={(event) => event.stopPropagation()}>
                   {canManageStatus ? (
                     <StatusSelect
                       value={lead.status}

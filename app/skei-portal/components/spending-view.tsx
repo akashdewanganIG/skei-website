@@ -18,7 +18,7 @@ import type { CampaignCategory, SelectOption, SpendLog } from "../portal-types";
 import { formatCurrency } from "../portal-utils";
 import { EmptyInline } from "./empty-states";
 import { SelectField, TextInput } from "./form-fields";
-import { BAR_CURSOR, StripeDefs, stripeFill } from "./lead-charts";
+import { BAR_CURSOR, COLUMN_RADIUS, StripeDefs, stripeFill } from "./lead-charts";
 import { SpendingAutomation } from "./spending-automation";
 
 type DurationMode = "all" | "custom";
@@ -325,7 +325,13 @@ function SpendingChart({ data }: { data: { name: string; amount: number; color: 
               );
             }}
           />
-          <Bar dataKey="amount" barSize={34} animationDuration={900} animationEasing="ease-out">
+          <Bar
+            dataKey="amount"
+            barSize={34}
+            radius={COLUMN_RADIUS}
+            animationDuration={900}
+            animationEasing="ease-out"
+          >
             {data.map((entry) => (
               <Cell key={entry.name} fill={stripeFill("stripe-spend", entry.color)} />
             ))}

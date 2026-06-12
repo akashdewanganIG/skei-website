@@ -21,6 +21,14 @@ function monthLabel(date: Date): string {
   return date.toLocaleDateString("en-IN", { month: "short" });
 }
 
+// Natural classroom order: Early Years / Nursery first, then by grade number,
+// with anything unrecognised pushed to the end.
+function gradeRank(grade: string): number {
+  if (/early|nursery|prep|kg|kinder/i.test(grade)) return -1;
+  const match = grade.match(/\d+/);
+  return match ? Number(match[0]) : Number.MAX_SAFE_INTEGER;
+}
+
 function qualityScore(lead: Lead): number {
   const statusBoost: Record<LeadStatus, number> = {
     New: 8,
@@ -180,10 +188,13 @@ export function analyzeLeads(
     monthly: buildMonthSeries(leads),
     sources,
     qualityBuckets,
+    // Top 7 grades by demand, displayed in natural grade order so the axis
+    // stays readable.
     grades: Array.from(gradeMap.entries())
       .map(([grade, count]) => ({ grade, count }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 7),
+      .slice(0, 7)
+      .sort((a, b) => gradeRank(a.grade) - gradeRank(b.grade) || a.grade.localeCompare(b.grade)),
   };
 }
 

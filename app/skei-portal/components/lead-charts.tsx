@@ -1,5 +1,6 @@
 "use client";
 
+import { RiInformationLine } from "@remixicon/react";
 import type { ComponentType, ReactNode } from "react";
 import { Fragment, useEffect, useState } from "react";
 import {
@@ -28,6 +29,13 @@ import { EmptyInline } from "./empty-states";
 // colour, so it stays subtle in both light and dark mode (the Recharts default
 // grey reads too dark on ivory and too light on the dark surface).
 export const BAR_CURSOR = { fill: "color-mix(in srgb, var(--color-fg) 7%, transparent)" };
+
+// Rounded outer corners for every chart shape, shared so all charts match:
+// horizontal bars (layout="vertical") round their right end, vertical columns
+// round their top, pie slices round all corners.
+export const BAR_RADIUS: [number, number, number, number] = [0, 6, 6, 0];
+export const COLUMN_RADIUS: [number, number, number, number] = [6, 6, 0, 0];
+const PIE_CORNER_RADIUS = 4;
 
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -123,6 +131,7 @@ function activeSlice({
       startAngle={startAngle}
       endAngle={endAngle}
       fill={fill}
+      cornerRadius={PIE_CORNER_RADIUS}
       stroke="var(--color-surface)"
       strokeWidth={2}
     />
@@ -147,6 +156,7 @@ function inactiveSlice({
       startAngle={startAngle}
       endAngle={endAngle}
       fill={fill}
+      cornerRadius={PIE_CORNER_RADIUS}
       stroke="var(--color-surface)"
       strokeWidth={2}
       opacity={0.4}
@@ -157,20 +167,52 @@ function inactiveSlice({
 export function ChartCard({
   title,
   icon: Icon,
+  info,
   children,
 }: {
   title: string;
   icon: ComponentType<{ className?: string }>;
+  info?: ReactNode;
   children: ReactNode;
 }) {
   return (
     <section className="flex h-full flex-col rounded-lg border border-line bg-surface shadow-soft">
-      <div className="flex shrink-0 items-center justify-between border-b border-line px-4 py-3">
-        <h2 className="text-sm font-semibold text-fg">{title}</h2>
+      <div className="relative flex shrink-0 items-center justify-between border-b border-line px-4 py-3">
+        <div className="flex items-center gap-1.5">
+          <h2 className="text-sm font-semibold text-fg">{title}</h2>
+          {info && <InfoHint title={title}>{info}</InfoHint>}
+        </div>
         <Icon className="h-4 w-4 text-muted" />
       </div>
       <div className="flex min-w-0 flex-1 flex-col p-4">{children}</div>
     </section>
+  );
+}
+
+// Shows on hover/focus via CSS; the click toggle covers touch devices, where
+// hover never fires and (on iOS) buttons don't take focus on tap.
+function InfoHint({ title, children }: { title: string; children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <span className="group flex">
+      <button
+        type="button"
+        aria-label={`How ${title} is calculated`}
+        onClick={() => setOpen((current) => !current)}
+        onBlur={() => setOpen(false)}
+        className="grid h-5 w-5 place-items-center rounded-full text-muted transition-colors hover:text-fg"
+      >
+        <RiInformationLine className="h-4 w-4" />
+      </button>
+      <span
+        role="tooltip"
+        className={`pointer-events-none absolute inset-x-3 top-full z-30 mt-1.5 rounded-lg border border-line bg-surface/95 px-3 py-2 text-xs leading-relaxed text-muted shadow-lift backdrop-blur transition-opacity duration-200 ${
+          open ? "opacity-100" : "opacity-0 group-focus-within:opacity-100 group-hover:opacity-100"
+        }`}
+      >
+        {children}
+      </span>
+    </span>
   );
 }
 
@@ -349,7 +391,13 @@ export function SourceCostChart({ sources }: { sources: LeadAnalytics["sources"]
             }}
             cursor={BAR_CURSOR}
           />
-          <Bar dataKey="cpl" maxBarSize={26} animationDuration={900} animationEasing="ease-out">
+          <Bar
+            dataKey="cpl"
+            maxBarSize={26}
+            radius={BAR_RADIUS}
+            animationDuration={900}
+            animationEasing="ease-out"
+          >
             {chartData.map((entry) => (
               <Cell key={entry.name} fill={stripeFill("stripe-cost", entry.color)} />
             ))}
@@ -383,6 +431,7 @@ export function QualityChart({
               cy="50%"
               outerRadius="92%"
               paddingAngle={1.5}
+              cornerRadius={PIE_CORNER_RADIUS}
               stroke="var(--color-surface)"
               strokeWidth={2}
               activeShape={activeSlice}
@@ -483,7 +532,13 @@ export function StatusFunnel({ analytics }: { analytics: LeadAnalytics }) {
             }}
             cursor={BAR_CURSOR}
           />
-          <Bar dataKey="value" maxBarSize={22} animationDuration={900} animationEasing="ease-out">
+          <Bar
+            dataKey="value"
+            maxBarSize={22}
+            radius={BAR_RADIUS}
+            animationDuration={900}
+            animationEasing="ease-out"
+          >
             {chartData.map((entry) => (
               <Cell key={entry.status} fill={stripeFill("stripe-status", entry.color)} />
             ))}
@@ -545,7 +600,13 @@ export function SourceQuality({ sources }: { sources: LeadAnalytics["sources"] }
             }}
             cursor={BAR_CURSOR}
           />
-          <Bar dataKey="quality" maxBarSize={26} animationDuration={900} animationEasing="ease-out">
+          <Bar
+            dataKey="quality"
+            maxBarSize={26}
+            radius={BAR_RADIUS}
+            animationDuration={900}
+            animationEasing="ease-out"
+          >
             {chartData.map((entry) => (
               <Cell key={entry.name} fill={stripeFill("stripe-quality", entry.color)} />
             ))}
@@ -589,6 +650,7 @@ export function GradeDemand({ grades }: { grades: LeadAnalytics["grades"] }) {
             name="Leads"
             fill={stripeFill("stripe-grade", ORANGE_ACCENT)}
             maxBarSize={26}
+            radius={BAR_RADIUS}
             animationDuration={900}
             animationEasing="ease-out"
           />

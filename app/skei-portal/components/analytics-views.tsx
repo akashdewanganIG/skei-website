@@ -22,6 +22,10 @@ import {
   StatusFunnel,
 } from "./lead-charts";
 
+// Mirrors qualityScore() in lib/lead-analytics.ts — update both together.
+const QUALITY_SCORE_INFO =
+  "Each lead is scored from a base of 28 points plus its pipeline stage (Admitted +42, Visit Scheduled +30, Contacted +18, New +8, Closed +2), with bonuses for an email (+8), a valid 10-digit mobile (+8), detailed notes (+7) and early-years grades (+5), capped at 8–98. High is 75+, Medium 50–74, Low below 50.";
+
 export function OverviewView({
   analytics,
   setView,
@@ -88,7 +92,7 @@ export function OverviewView({
         <ChartCard title="Cost per lead by source" icon={RiBarChartBoxLine}>
           <SourceCostChart sources={analytics.sources} />
         </ChartCard>
-        <ChartCard title="Lead quality score" icon={RiPieChartLine}>
+        <ChartCard title="Lead quality score" icon={RiPieChartLine} info={QUALITY_SCORE_INFO}>
           <QualityChart buckets={analytics.qualityBuckets} avg={analytics.avgQuality} />
         </ChartCard>
         <ChartCard title="Top grade demand" icon={RiTeamLine}>
@@ -111,7 +115,7 @@ export function AnalyticsView({ analytics }: { analytics: LeadAnalytics }) {
         </ChartCard>
       </section>
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-3 [&>*:only-child]:col-span-full">
-        <ChartCard title="Lead quality score" icon={RiPieChartLine}>
+        <ChartCard title="Lead quality score" icon={RiPieChartLine} info={QUALITY_SCORE_INFO}>
           <QualityChart buckets={analytics.qualityBuckets} avg={analytics.avgQuality} />
         </ChartCard>
         <ChartCard title="Source quality" icon={RiBarChartBoxLine}>

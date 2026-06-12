@@ -347,11 +347,11 @@ export function Dashboard({
   return (
     <div className="min-h-dvh bg-bg text-fg">
       <div className="flex min-h-dvh">
-        <aside className="hidden w-[244px] shrink-0 border-r border-line bg-surface/75 lg:flex lg:flex-col">
-          <div className="flex h-16 items-center gap-3 border-b border-line px-5">
+        <aside className="hidden w-[244px] shrink-0 border-r border-line bg-surface/75 lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col">
+          <div className="flex h-16 shrink-0 items-center gap-3 border-b border-line px-5">
             <BrandLogo priority className="h-9 w-auto" />
           </div>
-          <nav className="flex flex-1 flex-col gap-1 px-3 py-4">
+          <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4">
             {navItems.map((item) => (
               <SidebarButton
                 key={item.key}
@@ -361,7 +361,7 @@ export function Dashboard({
               />
             ))}
           </nav>
-          <div className="border-t border-line px-4 py-4">
+          <div className="shrink-0 border-t border-line px-4 py-4">
             <div className="flex items-center gap-3">
               <span className="grid h-9 w-9 place-items-center rounded-full bg-clay/12 text-xs font-bold text-clay">
                 {initials(session.name)}
@@ -466,7 +466,7 @@ export function Dashboard({
                 exportCsv={exportCsv}
                 importCsv={handleFileSelect}
                 canAddLead={view === "leads" && canEditDetails}
-                canExport={canExportLeads}
+                canExport={view === "leads" && canExportLeads}
                 exportDisabled={sectionedLeads.length === 0}
                 canImport={view === "leads" && canEditDetails}
               />

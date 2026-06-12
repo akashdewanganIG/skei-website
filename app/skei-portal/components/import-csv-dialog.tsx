@@ -1,6 +1,6 @@
 "use client";
 
-import { RiCloseLine, RiUploadLine } from "@remixicon/react";
+import { RiCloseCircleLine, RiUploadLine } from "@remixicon/react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -39,25 +39,39 @@ export function ImportCsvDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-2xl rounded-xl border border-line bg-bg shadow-xl">
-        <div className="flex items-center justify-between border-b border-line px-5 py-4">
-          <div>
-            <h2 className="font-semibold text-fg">Import CSV</h2>
-            <p className="mt-0.5 truncate text-xs text-muted">{file.name}</p>
+    <div
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-ink/40 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="import-csv-title"
+    >
+      <button
+        type="button"
+        className="absolute inset-0 cursor-default"
+        onClick={onClose}
+        disabled={importing}
+        aria-label="Close import"
+      />
+      <div className="relative flex max-h-[92dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl border border-line bg-surface shadow-lift sm:rounded-2xl">
+        <div className="shrink-0 flex items-start justify-between gap-3 border-b border-line bg-surface px-5 py-4">
+          <div className="min-w-0">
+            <h2 id="import-csv-title" className="text-base font-semibold text-fg">
+              Import CSV
+            </h2>
+            <p className="mt-1 truncate text-xs text-muted">{file.name}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             disabled={importing}
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-muted transition-colors hover:bg-fg/[0.06] hover:text-fg disabled:opacity-40"
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted transition-colors hover:bg-bg hover:text-fg disabled:opacity-40"
             aria-label="Close"
           >
-            <RiCloseLine className="h-4 w-4" />
+            <RiCloseCircleLine className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="px-5 py-4">
+        <div className="flex-1 overflow-y-auto p-5">
           <p className="text-sm text-fg">
             <span className="font-semibold">{rows.length.toLocaleString()} rows</span> found.
             Duplicate mobile numbers and invalid rows will be skipped automatically.
@@ -66,9 +80,9 @@ export function ImportCsvDialog({
           <div className="mt-4 overflow-x-auto rounded-lg border border-line">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-line bg-surface">
+                <tr className="border-b border-line bg-bg/45">
                   {PREVIEW_COLUMNS.map((col) => (
-                    <th key={col} className="px-3 py-2 text-left font-medium text-muted">
+                    <th key={col} className="px-3 py-2 text-left font-semibold text-muted">
                       {col}
                     </th>
                   ))}
@@ -94,12 +108,12 @@ export function ImportCsvDialog({
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-2 border-t border-line px-5 py-4">
+        <div className="shrink-0 flex items-center justify-end gap-2 border-t border-line bg-surface px-5 py-4">
           <button
             type="button"
             onClick={onClose}
             disabled={importing}
-            className="rounded-lg border border-line bg-surface px-4 py-2 text-sm font-medium text-fg/75 transition-colors hover:bg-fg/[0.04] hover:text-fg disabled:opacity-50"
+            className="h-10 rounded-lg border border-line px-4 text-sm font-semibold text-muted transition-colors hover:text-fg disabled:opacity-50"
           >
             Cancel
           </button>
@@ -107,7 +121,7 @@ export function ImportCsvDialog({
             type="button"
             onClick={handleConfirm}
             disabled={importing}
-            className="flex items-center gap-2 rounded-lg bg-clay px-4 py-2 text-sm font-semibold text-ivory transition-colors hover:bg-clay-deep disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-10 items-center justify-center gap-2 rounded-lg bg-clay px-4 text-sm font-semibold text-ivory transition-colors hover:bg-clay-deep disabled:cursor-not-allowed disabled:opacity-60"
           >
             {importing ? (
               <>
