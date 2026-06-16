@@ -89,7 +89,7 @@ export function OverviewView({
       </section>
 
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-3 [&>*:only-child]:col-span-full">
-        <ChartCard title="Cost per lead by source" icon={RiBarChartBoxLine}>
+        <ChartCard title="Source spend" icon={RiBarChartBoxLine}>
           <SourceCostChart sources={analytics.sources} />
         </ChartCard>
         <ChartCard title="Lead quality score" icon={RiPieChartLine} info={QUALITY_SCORE_INFO}>
@@ -110,7 +110,7 @@ export function AnalyticsView({ analytics }: { analytics: LeadAnalytics }) {
         <ChartCard title="Monthly lead trend" icon={RiLineChartLine}>
           <MonthlyTrendChart data={analytics.monthly} tall />
         </ChartCard>
-        <ChartCard title="Cost per lead by source" icon={RiBarChartBoxLine}>
+        <ChartCard title="Source spend" icon={RiBarChartBoxLine}>
           <SourceCostChart sources={analytics.sources} />
         </ChartCard>
       </section>

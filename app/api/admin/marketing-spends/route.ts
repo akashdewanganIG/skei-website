@@ -1,9 +1,10 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { recordAuditLog } from "@/lib/audit";
 import { hasPermission } from "@/lib/auth/permissions";
 import { getSession } from "@/lib/auth/session";
 import { hasCampaignParent, listCampaignCategories } from "@/lib/campaigns";
+import { dateOnlyToUtcDate, parseDateOnly } from "@/lib/date-only";
 import { db } from "@/lib/db";
 import { marketingSpends } from "@/lib/db/schema";
 import { syncMetaSpend } from "@/lib/meta-spend";
@@ -33,7 +34,18 @@ export async function GET() {
     // sync is enabled and stale) so spend stays current without a cron.
     await syncMetaSpend().catch(() => {});
 
-    const rows = await db.select().from(marketingSpends).orderBy(desc(marketingSpends.date));
+    const rows = await db
+      .select({
+        id: marketingSpends.id,
+        source: marketingSpends.source,
+        amount: marketingSpends.amount,
+        date: sql<string>`to_char(${marketingSpends.date}, 'YYYY-MM-DD')`,
+        createdAt: marketingSpends.createdAt,
+        addedBy: marketingSpends.addedBy,
+        externalRef: marketingSpends.externalRef,
+      })
+      .from(marketingSpends)
+      .orderBy(desc(marketingSpends.date));
     return NextResponse.json({ spends: rows });
   } catch (error) {
     console.error("Failed to load marketing spends:", error);
@@ -63,15 +75,16 @@ export async function POST(request: Request) {
   const source = getTrimmedString(body, "source");
   const amount = Number(body.amount);
   const dateValue = getTrimmedString(body, "date");
-  const date = new Date(dateValue);
+  const spendDate = parseDateOnly(dateValue);
+  const date = spendDate ? dateOnlyToUtcDate(spendDate) : null;
   const categories = await listCampaignCategories();
 
   if (
     !source ||
     !Number.isFinite(amount) ||
     amount <= 0 ||
-    !dateValue ||
-    Number.isNaN(date.getTime())
+    !spendDate ||
+    !date
   ) {
     return NextResponse.json(
       { error: "Campaign group, amount, and date are required." },
@@ -101,10 +114,10 @@ export async function POST(request: Request) {
       entityType: "settings",
       entityId: inserted[0].id,
       summary: `Added spend for ${source}`,
-      metadata: { amount, source, date: dateValue },
+      metadata: { amount, source, date: spendDate },
     });
 
-    return NextResponse.json({ ok: true, spend: inserted[0] });
+    return NextResponse.json({ ok: true, spend: { ...inserted[0], date: spendDate } });
   } catch (error) {
     console.error("Failed to insert marketing spend:", error);
     return NextResponse.json({ error: "Could not add spend." }, { status: 500 });
@@ -144,7 +157,7 @@ export async function DELETE(request: Request) {
       metadata: {
         source: deleted.source,
         amount: Number(deleted.amount),
-        date: deleted.date.toISOString(),
+        date: parseDateOnly(deleted.date) ?? deleted.date.toISOString(),
       },
     });
 

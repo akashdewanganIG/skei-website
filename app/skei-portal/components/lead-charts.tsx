@@ -256,6 +256,25 @@ function ChartTooltip({ active, label, payload }: ChartTooltipProps) {
   );
 }
 
+type SourceChartRow = LeadAnalytics["sources"][number];
+
+function sourceHasChartData(source: SourceChartRow): boolean {
+  return source.leads > 0 || source.spend > 0;
+}
+
+function compareSourceChartRows(a: SourceChartRow, b: SourceChartRow): number {
+  return (
+    b.spend - a.spend ||
+    b.leads - a.leads ||
+    b.avgQuality - a.avgQuality ||
+    a.name.localeCompare(b.name)
+  );
+}
+
+function orderedSourceChartRows(sources: LeadAnalytics["sources"]): SourceChartRow[] {
+  return sources.slice().filter(sourceHasChartData).sort(compareSourceChartRows);
+}
+
 export function MonthlyTrendChart({
   data,
   tall = false,
@@ -337,15 +356,16 @@ export function MonthlyTrendChart({
 }
 
 export function SourceCostChart({ sources }: { sources: LeadAnalytics["sources"] }) {
-  const chartData = sources
-    .slice()
-    .sort((a, b) => b.leads - a.leads || b.cpl - a.cpl)
-    .map((source) => ({
-      name: source.name,
-      cpl: Math.round(source.cpl),
-      leads: source.leads,
-      color: source.color,
-    }));
+  const chartData = orderedSourceChartRows(sources).map((source) => ({
+    name: source.name,
+    spend: Math.round(source.spend),
+    cpl: source.cpl,
+    leads: source.leads,
+    color: source.color,
+  }));
+
+  if (chartData.length === 0) return <EmptyInline text="No source cost data yet." />;
+
   return (
     <div className="h-full min-h-[300px] w-full">
       <ResponsiveContainer width="100%" height="100%">
@@ -374,17 +394,28 @@ export function SourceCostChart({ sources }: { sources: LeadAnalytics["sources"]
           <Tooltip
             content={({ active, payload, label }) => {
               if (!active || !payload?.length) return null;
-              const item = payload[0]?.payload as { leads?: number } | undefined;
+              const item = payload[0]?.payload as
+                | { color?: string; cpl?: number; leads?: number; spend?: number }
+                | undefined;
+              const leads = item?.leads ?? 0;
+              const spend = item?.spend ?? 0;
+              const color = item?.color ?? ORANGE_ACCENT;
               return (
                 <ChartTooltip
                   active={active}
                   label={label}
                   payload={[
-                    {
-                      name: `${item?.leads ?? 0} leads`,
-                      value: formatCurrency(Number(payload[0].value ?? 0)),
-                      color: String(payload[0].payload.color),
-                    },
+                    { name: "Total spend", value: formatCurrency(spend), color },
+                    { name: "Leads", value: leads, color },
+                    ...(leads > 0
+                      ? [
+                          {
+                            name: "Avg CPL",
+                            value: formatCurrency(Number(item?.cpl ?? 0)),
+                            color,
+                          },
+                        ]
+                      : []),
                   ]}
                 />
               );
@@ -392,7 +423,7 @@ export function SourceCostChart({ sources }: { sources: LeadAnalytics["sources"]
             cursor={BAR_CURSOR}
           />
           <Bar
-            dataKey="cpl"
+            dataKey="spend"
             maxBarSize={26}
             radius={BAR_RADIUS}
             animationDuration={900}
@@ -550,14 +581,16 @@ export function StatusFunnel({ analytics }: { analytics: LeadAnalytics }) {
 }
 
 export function SourceQuality({ sources }: { sources: LeadAnalytics["sources"] }) {
-  const chartData = sources
-    .slice()
-    .sort((a, b) => b.avgQuality - a.avgQuality)
-    .map((source) => ({
-      name: source.name,
-      quality: Math.round(source.avgQuality),
-      color: source.color,
-    }));
+  const chartData = orderedSourceChartRows(sources).map((source) => ({
+    name: source.name,
+    quality: Math.round(source.avgQuality),
+    leads: source.leads,
+    spend: source.spend,
+    color: source.color,
+  }));
+
+  if (chartData.length === 0) return <EmptyInline text="No source quality data yet." />;
+
   return (
     <div className="h-full min-h-[300px] w-full">
       <ResponsiveContainer width="100%" height="100%">
@@ -587,13 +620,18 @@ export function SourceQuality({ sources }: { sources: LeadAnalytics["sources"] }
           <Tooltip
             content={({ active, payload, label }) => {
               if (!active || !payload?.length) return null;
-              const row = payload[0]?.payload as { color?: string } | undefined;
+              const row = payload[0]?.payload as
+                | { color?: string; leads?: number; spend?: number }
+                | undefined;
+              const color = row?.color ?? ORANGE_ACCENT;
               return (
                 <ChartTooltip
                   active={active}
                   label={label}
                   payload={[
-                    { name: "Quality", value: `${payload[0].value ?? 0}%`, color: row?.color },
+                    { name: "Quality", value: `${payload[0].value ?? 0}%`, color },
+                    { name: "Leads", value: row?.leads ?? 0, color },
+                    { name: "Spend", value: formatCurrency(row?.spend ?? 0), color },
                   ]}
                 />
               );
@@ -602,6 +640,7 @@ export function SourceQuality({ sources }: { sources: LeadAnalytics["sources"] }
           />
           <Bar
             dataKey="quality"
+            minPointSize={3}
             maxBarSize={26}
             radius={BAR_RADIUS}
             animationDuration={900}

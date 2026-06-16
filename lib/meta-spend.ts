@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { hasCampaignParent, listCampaignCategories } from "@/lib/campaigns";
+import { dateOnlyToUtcDate } from "@/lib/date-only";
 import { db } from "@/lib/db";
 import { appSettings } from "@/lib/db/schema";
 import { upsertSpendEntry } from "@/lib/spend-automation";
@@ -108,11 +109,12 @@ export async function syncMetaSpend(options: { force?: boolean } = {}): Promise<
     for (const row of data.data ?? []) {
       const amount = Number(row.spend);
       const date = typeof row.date_start === "string" ? row.date_start : "";
-      if (!date || !Number.isFinite(amount) || amount <= 0) continue;
+      const spendDate = dateOnlyToUtcDate(date);
+      if (!spendDate || !Number.isFinite(amount) || amount <= 0) continue;
       await upsertSpendEntry({
         source: config.source,
         amount,
-        date: new Date(date),
+        date: spendDate,
         externalRef: `meta:${accountId}:${date}`,
         addedBy: "Meta Ads sync",
       });

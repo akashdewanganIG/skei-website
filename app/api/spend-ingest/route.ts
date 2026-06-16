@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { recordAuditLog } from "@/lib/audit";
 import { listCampaignCategories } from "@/lib/campaigns";
+import { dateOnlyToUtcDate, parseDateOnly } from "@/lib/date-only";
 import {
   findConnectionByKey,
   resolveCampaignParent,
@@ -31,10 +32,10 @@ function extractKey(request: Request): string {
   return request.headers.get("x-api-key")?.trim() ?? "";
 }
 
-function parseDay(value: unknown): Date | null {
-  if (typeof value !== "string" || !value.trim()) return null;
-  const date = new Date(value.trim());
-  return Number.isNaN(date.getTime()) ? null : date;
+function parseDay(value: unknown): { day: string; date: Date } | null {
+  const day = parseDateOnly(value);
+  const date = day ? dateOnlyToUtcDate(day) : null;
+  return day && date ? { day, date } : null;
 }
 
 export async function POST(request: Request) {
@@ -83,8 +84,8 @@ export async function POST(request: Request) {
       continue;
     }
 
-    const date = parseDay(entry.date);
-    if (!date) {
+    const spendDate = parseDay(entry.date);
+    if (!spendDate) {
       errors.push({ index, error: "'date' must be a valid date (YYYY-MM-DD)." });
       continue;
     }
@@ -103,7 +104,7 @@ export async function POST(request: Request) {
       source = resolved;
     }
 
-    const day = date.toISOString().slice(0, 10);
+    const { day, date } = spendDate;
     const providedRef =
       typeof entry.externalRef === "string" && entry.externalRef.trim()
         ? entry.externalRef.trim()

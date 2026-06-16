@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import { toast } from "sonner";
 import { campaignParentOptions } from "@/lib/campaign-attribution";
+import { compareDateOnly, formatDateOnly, parseDateOnly, todayDateOnly } from "@/lib/date-only";
 import type { CampaignCategory, SelectOption, SpendLog } from "../portal-types";
 import { formatCurrency } from "../portal-utils";
 import { EmptyInline } from "./empty-states";
@@ -29,15 +30,20 @@ const DURATION_OPTIONS: SelectOption<DurationMode>[] = [
 ];
 
 function dateInputValue(date = new Date()): string {
-  return date.toISOString().slice(0, 10);
+  return todayDateOnly(date);
 }
 
 function inRange(log: SpendLog, mode: DurationMode, startDate: string, endDate: string): boolean {
   if (mode === "all") return true;
-  const time = new Date(log.date).getTime();
-  const start = startDate ? new Date(startDate).getTime() : Number.NEGATIVE_INFINITY;
-  const end = endDate ? new Date(`${endDate}T23:59:59`).getTime() : Number.POSITIVE_INFINITY;
-  return time >= start && time <= end;
+  const logDate = parseDateOnly(log.date);
+  if (!logDate) return false;
+
+  const start = parseDateOnly(startDate);
+  const end = parseDateOnly(endDate);
+  return (
+    (!start || compareDateOnly(logDate, start) >= 0) &&
+    (!end || compareDateOnly(logDate, end) <= 0)
+  );
 }
 
 export function SpendingView({
@@ -111,7 +117,8 @@ export function SpendingView({
 
       onLogsUpdate(
         [data.spend as SpendLog, ...logs].sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+          (a, b) =>
+            compareDateOnly(parseDateOnly(b.date) ?? "", parseDateOnly(a.date) ?? ""),
         ),
       );
       setAmount("");
@@ -247,7 +254,7 @@ export function SpendingView({
                 filteredLogs.map((log) => (
                   <tr key={log.id} className="transition-colors hover:bg-bg/45">
                     <td className="px-4 py-3 text-fg">
-                      {new Date(log.date).toLocaleDateString("en-IN")}
+                      {formatDateOnly(log.date)}
                     </td>
                     <td className="px-4 py-3 font-medium text-fg">{log.source}</td>
                     <td className="px-4 py-3 text-right font-semibold text-fg">

@@ -1,5 +1,4 @@
 import {
-  campaignSourcesFromCategories,
   inferCampaignSource,
   type CampaignCategory,
 } from "@/lib/campaign-attribution";
@@ -45,6 +44,10 @@ function qualityScore(lead: Lead): number {
   return Math.max(8, Math.min(98, score));
 }
 
+function campaignCategoryKey(value: string): string {
+  return value.trim().toLowerCase();
+}
+
 export function buildMonthSeries(leads: Lead[]) {
   const dates = leads.map((lead) => parseLeadDate(lead.submit_date)).filter(Boolean) as Date[];
   const end = dates.length
@@ -77,7 +80,9 @@ export function analyzeLeads(
   spendLogs: SpendLogInput[] = [],
   categories: CampaignCategory[] = [],
 ) {
-  const campaignSources = campaignSourcesFromCategories(categories);
+  const categoryMap = new Map(
+    categories.map((category) => [campaignCategoryKey(category.name), category]),
+  );
   const total = leads.length;
   const counts = { total } as Record<"total" | LeadStatus, number>;
   for (const status of LEAD_STATUSES) counts[status] = 0;
@@ -95,15 +100,14 @@ export function analyzeLeads(
     }
   >();
   const parentSpendMap = new Map<string, number>();
-  const parentLeadsMap = new Map<string, number>();
   const gradeMap = new Map<string, number>();
   let totalQuality = 0;
 
-  for (const source of campaignSources) {
-    sourceMap.set(source.name, {
-      name: source.name,
-      parent: source.parent,
-      color: source.color,
+  for (const category of categories) {
+    sourceMap.set(category.name, {
+      name: category.name,
+      parent: category.name,
+      color: category.color,
       cost: 0,
       leads: 0,
       spend: 0,
@@ -113,48 +117,65 @@ export function analyzeLeads(
 
   for (const log of spendLogs) {
     const amount = Number(log.amount) || 0;
-    parentSpendMap.set(log.source, (parentSpendMap.get(log.source) ?? 0) + amount);
+    const rawSource = log.source.trim();
+    if (!rawSource) continue;
+    const parent = categoryMap.get(campaignCategoryKey(rawSource))?.name ?? rawSource;
+    parentSpendMap.set(parent, (parentSpendMap.get(parent) ?? 0) + amount);
   }
 
   for (const lead of leads) {
     counts[lead.status] += 1;
     const source = inferCampaignSource(lead, categories);
     const score = qualityScore(lead);
+    const parent = source.parent;
+    const category = categoryMap.get(campaignCategoryKey(parent));
 
-    let bucket = sourceMap.get(source.name);
+    let bucket = sourceMap.get(parent);
     if (!bucket) {
       bucket = {
-        name: source.name,
-        parent: source.parent,
-        color: source.color,
+        name: parent,
+        parent,
+        color: category?.color ?? source.color,
         cost: 0,
         leads: 0,
         spend: 0,
         quality: 0,
       };
-      sourceMap.set(source.name, bucket);
+      sourceMap.set(parent, bucket);
     }
 
     bucket.leads += 1;
     bucket.quality += score;
-    parentLeadsMap.set(source.parent, (parentLeadsMap.get(source.parent) ?? 0) + 1);
 
     if (lead.grade) gradeMap.set(lead.grade, (gradeMap.get(lead.grade) ?? 0) + 1);
     totalQuality += score;
   }
 
-  for (const bucket of sourceMap.values()) {
-    if (bucket.leads === 0) continue;
-    const parentSpend = parentSpendMap.get(bucket.parent) ?? 0;
-    const parentLeads = parentLeadsMap.get(bucket.parent) ?? 0;
-    bucket.spend = parentLeads > 0 ? parentSpend * (bucket.leads / parentLeads) : 0;
+  for (const [parent, parentSpend] of parentSpendMap) {
+    if (parentSpend === 0) continue;
+    const category = categoryMap.get(campaignCategoryKey(parent));
+    const bucket = sourceMap.get(parent) ?? {
+      name: parent,
+      parent,
+      color: category?.color ?? "#d9481e",
+      cost: 0,
+      leads: 0,
+      spend: 0,
+      quality: 0,
+    };
+    bucket.spend = parentSpend;
+    sourceMap.set(parent, bucket);
   }
 
-  const sources = Array.from(sourceMap.values()).map((source) => ({
-    ...source,
-    cpl: source.leads ? source.spend / source.leads : 0,
-    avgQuality: source.leads ? source.quality / source.leads : 0,
-  }));
+  const sources = Array.from(sourceMap.values()).map((source) => {
+    const cpl = source.leads ? source.spend / source.leads : 0;
+    return {
+      ...source,
+      cost: source.leads ? cpl : source.spend,
+      cpl,
+      avgQuality: source.leads ? source.quality / source.leads : 0,
+    };
+  });
   const totalSpend = spendLogs.reduce((sum, log) => sum + (Number(log.amount) || 0), 0);
   const avgQuality = total ? totalQuality / total : 0;
   const conversionRate = total ? (counts.Admitted / total) * 100 : 0;
