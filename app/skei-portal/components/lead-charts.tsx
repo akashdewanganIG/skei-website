@@ -296,7 +296,7 @@ export function MonthlyTrendChart({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className={`w-full flex-1 ${tall ? "min-h-[280px]" : "min-h-[200px]"}`}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <AreaChart data={chartData} margin={{ top: 12, right: 16, left: 0, bottom: 0 }}>
             <StripeDefs prefix="stripe-trend" colors={["#3f7cac", "#2f8f5b"]} />
             <CartesianGrid stroke="var(--color-line)" strokeDasharray="3 3" vertical={false} />
@@ -368,7 +368,7 @@ export function SourceCostChart({ sources }: { sources: LeadAnalytics["sources"]
 
   return (
     <div className="h-full min-h-[300px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <BarChart
           data={chartData}
           layout="vertical"
@@ -450,7 +450,7 @@ export function QualityChart({
   return (
     <div className="flex h-full min-h-[200px] flex-col gap-5">
       <div className="mx-auto h-[210px] w-[210px] shrink-0">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <PieChart>
             <StripeDefs prefix="stripe-quality-pie" colors={buckets.map((b) => b.color)} />
             <Tooltip content={<ChartTooltip />} />
@@ -519,7 +519,7 @@ export function StatusFunnel({ analytics }: { analytics: LeadAnalytics }) {
   });
   return (
     <div className="h-full min-h-[260px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <BarChart
           data={chartData}
           layout="vertical"
@@ -593,7 +593,7 @@ export function SourceQuality({ sources }: { sources: LeadAnalytics["sources"] }
 
   return (
     <div className="h-full min-h-[300px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <BarChart
           data={chartData}
           layout="vertical"
@@ -660,7 +660,7 @@ export function GradeDemand({ grades }: { grades: LeadAnalytics["grades"] }) {
   if (grades.length === 0) return <EmptyInline text="No grade data yet." />;
   return (
     <div className="h-full min-h-[260px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <BarChart
           data={grades}
           layout="vertical"

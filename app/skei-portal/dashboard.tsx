@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { BrandLogo } from "@/components/ui/logo";
 import { canManageUsers, hasPermission } from "@/lib/auth/permissions";
+import { compareDateOnly, parseDateOnly } from "@/lib/date-only";
 import { analyzeLeads } from "@/lib/lead-analytics";
 import {
   campaignSourceOptions,
@@ -48,6 +49,23 @@ import type {
   View,
 } from "./portal-types";
 import { greetingFor, initials, parseCsv, toCsv } from "./portal-utils";
+
+function leadSubmitDateOnly(value: string): string | null {
+  const [day, month, year] = value.split("-").map((part) => part.trim());
+  if (!day || !month || !year) return null;
+  return parseDateOnly(`${year}-${month}-${day}`);
+}
+
+function dateOnlyInRange(date: string | null, startDate: string, endDate: string): boolean {
+  if (!date) return false;
+
+  const start = parseDateOnly(startDate);
+  const end = parseDateOnly(endDate);
+  return (
+    (!start || compareDateOnly(date, start) >= 0) &&
+    (!end || compareDateOnly(date, end) <= 0)
+  );
+}
 
 export function Dashboard({
   session,
@@ -80,6 +98,8 @@ export function Dashboard({
   const [statusFilter, setStatusFilter] = useState<Filter>("all");
   const [gradeFilter, setGradeFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState<CampaignSourceFilter>("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [leadSection, setLeadSection] = useState<LeadSection>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [addingLead, setAddingLead] = useState(false);
@@ -151,6 +171,12 @@ export function Dashboard({
     const q = search.trim().toLowerCase();
     return leads.filter((lead) => {
       const source = inferCampaignSource(lead, categories);
+      if (
+        (startDate || endDate) &&
+        !dateOnlyInRange(leadSubmitDateOnly(lead.submit_date), startDate, endDate)
+      ) {
+        return false;
+      }
       if (statusFilter !== "all" && lead.status !== statusFilter) return false;
       if (gradeFilter !== "all" && lead.grade !== gradeFilter) return false;
       if (activeSourceFilter !== "all" && source.name !== activeSourceFilter) return false;
@@ -168,11 +194,21 @@ export function Dashboard({
         .toLowerCase()
         .includes(q);
     });
-  }, [leads, search, statusFilter, gradeFilter, activeSourceFilter, categories]);
+  }, [leads, search, statusFilter, gradeFilter, activeSourceFilter, categories, startDate, endDate]);
+
+  const filteredMarketingLogs = useMemo(
+    () =>
+      startDate || endDate
+        ? marketingLogs.filter((log) =>
+            dateOnlyInRange(parseDateOnly(log.date), startDate, endDate),
+          )
+        : marketingLogs,
+    [marketingLogs, startDate, endDate],
+  );
 
   const analytics = useMemo(
-    () => analyzeLeads(filtered, marketingLogs, categories),
-    [filtered, marketingLogs, categories],
+    () => analyzeLeads(filtered, filteredMarketingLogs, categories),
+    [filtered, filteredMarketingLogs, categories],
   );
 
   const sectionedLeads = useMemo(() => {
@@ -213,13 +249,17 @@ export function Dashboard({
     search.trim() !== "" ||
     statusFilter !== "all" ||
     gradeFilter !== "all" ||
-    activeSourceFilter !== "all";
+    activeSourceFilter !== "all" ||
+    startDate !== "" ||
+    endDate !== "";
 
   const clearFilters = useCallback(() => {
     setSearch("");
     setStatusFilter("all");
     setGradeFilter("all");
     setSourceFilter("all");
+    setStartDate("");
+    setEndDate("");
   }, []);
 
   const refresh = useCallback(async () => {
@@ -457,6 +497,10 @@ export function Dashboard({
                 sourceFilter={activeSourceFilter}
                 setSourceFilter={setSourceFilter}
                 sourceOptions={sourceOptions}
+                startDate={startDate}
+                setStartDate={setStartDate}
+                endDate={endDate}
+                setEndDate={setEndDate}
                 showCampaignFilter={true}
                 hasFilters={hasFilters}
                 clearFilters={clearFilters}
@@ -486,7 +530,8 @@ export function Dashboard({
             {view === "leads" && (
               <LeadsView
                 leads={sectionedLeads}
-                allLeads={leads}
+                allLeads={filtered}
+                hasAnyLeads={leads.length > 0}
                 categories={categories}
                 leadSection={leadSection}
                 setLeadSection={setLeadSection}
@@ -514,6 +559,10 @@ export function Dashboard({
                 onLogsUpdate={setMarketingLogs}
                 categories={categories}
                 canManage={canManageSpending}
+                startDate={startDate}
+                setStartDate={setStartDate}
+                endDate={endDate}
+                setEndDate={setEndDate}
               />
             )}
 

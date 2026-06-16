@@ -35,6 +35,7 @@ function qualityScore(lead: Lead): number {
     "Visit Scheduled": 30,
     Admitted: 42,
     Closed: 2,
+    Junk: 0,
   };
   let score = 28 + statusBoost[lead.status];
   if (lead.email) score += 8;

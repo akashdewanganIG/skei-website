@@ -17,6 +17,7 @@ import { EmptyState } from "./empty-states";
 export function LeadsView({
   leads,
   allLeads,
+  hasAnyLeads,
   categories,
   leadSection,
   setLeadSection,
@@ -26,6 +27,7 @@ export function LeadsView({
 }: {
   leads: Lead[];
   allLeads: Lead[];
+  hasAnyLeads: boolean;
   categories: CampaignCategory[];
   leadSection: LeadSection;
   setLeadSection: (section: LeadSection) => void;
@@ -71,7 +73,7 @@ export function LeadsView({
         </div>
 
         {leads.length === 0 ? (
-          <EmptyState hasLeads={allLeads.length > 0} />
+          <EmptyState hasLeads={hasAnyLeads} />
         ) : (
           <>
             <LeadTable
@@ -104,7 +106,7 @@ function LeadTable({
 }) {
   return (
     <div className="hidden overflow-x-auto lg:block">
-      <table className="w-full min-w-[1040px] text-sm">
+      <table className="w-full min-w-[1220px] text-sm">
         <thead>
           <tr className="border-b border-line bg-bg/45 text-left text-[0.68rem] uppercase tracking-wide text-muted">
             <th className="px-4 py-3 font-semibold">Student</th>
@@ -112,6 +114,7 @@ function LeadTable({
             <th className="px-4 py-3 font-semibold">Grade</th>
             <th className="px-4 py-3 font-semibold">Parent</th>
             <th className="px-4 py-3 font-semibold">Contact</th>
+            <th className="px-4 py-3 font-semibold">Comment</th>
             <th className="px-4 py-3 font-semibold">Date</th>
             <th className="px-4 py-3 font-semibold">Status</th>
             <th className="px-4 py-3 font-semibold">Remark</th>
@@ -149,12 +152,19 @@ function LeadTable({
                   <div className="text-fg">{lead.mobile_no || "-"}</div>
                   <div className="text-xs text-muted">{lead.email || "-"}</div>
                 </td>
+                <td className="max-w-[18rem] px-4 py-3 text-muted">
+                  <span className="line-clamp-2">{lead.comment || "-"}</span>
+                </td>
                 <td className="whitespace-nowrap px-4 py-3 text-muted">
                   {lead.submit_date || "-"}
                 </td>
                 {/* The Select menu portals to document.body, so the click still bubbles
                     through React's tree to the row — stop it here instead. */}
-                <td className="px-4 py-3" onClick={(event) => event.stopPropagation()}>
+                <td
+                  className="px-4 py-3"
+                  onClick={(event) => event.stopPropagation()}
+                  onKeyDown={(event) => event.stopPropagation()}
+                >
                   {canManageStatus ? (
                     <StatusSelect
                       value={lead.status}
@@ -270,6 +280,11 @@ function LeadCards({
               <span>{lead.parent_name || "-"}</span>
               <span className="font-medium text-fg">{lead.mobile_no || "-"}</span>
             </div>
+            {lead.comment && (
+              <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-muted">
+                {lead.comment}
+              </p>
+            )}
           </button>
         );
       })}

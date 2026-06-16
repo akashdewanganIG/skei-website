@@ -9,6 +9,7 @@ export const STATUS_META: Record<LeadStatus, { color: string }> = {
   "Visit Scheduled": { color: STATUS_ACCENT },
   Admitted: { color: STATUS_ACCENT },
   Closed: { color: STATUS_ACCENT },
+  Junk: { color: STATUS_ACCENT },
 };
 
 /** Hex color with an alpha channel, e.g. hexA("#d9481e", 0.12). */

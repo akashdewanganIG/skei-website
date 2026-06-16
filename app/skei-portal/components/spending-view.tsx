@@ -51,11 +51,19 @@ export function SpendingView({
   onLogsUpdate,
   categories,
   canManage,
+  startDate,
+  setStartDate,
+  endDate,
+  setEndDate,
 }: {
   logs: SpendLog[];
   onLogsUpdate: (logs: SpendLog[]) => void;
   categories: CampaignCategory[];
   canManage: boolean;
+  startDate: string;
+  setStartDate: (value: string) => void;
+  endDate: string;
+  setEndDate: (value: string) => void;
 }) {
   const parentOptions = useMemo(() => campaignParentOptions(categories), [categories]);
   const [saving, setSaving] = useState(false);
@@ -63,8 +71,7 @@ export function SpendingView({
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(() => dateInputValue());
   const [durationMode, setDurationMode] = useState<DurationMode>("all");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const activeDurationMode: DurationMode = startDate || endDate ? "custom" : durationMode;
   const activeSource = parentOptions.some((option) => option.value === source)
     ? source
     : (parentOptions[0]?.value ?? "");
@@ -72,11 +79,11 @@ export function SpendingView({
   const selectedSource =
     parentOptions.find((option) => option.value === activeSource) ?? parentOptions[0];
   const selectedDuration =
-    DURATION_OPTIONS.find((option) => option.value === durationMode) ?? DURATION_OPTIONS[0];
+    DURATION_OPTIONS.find((option) => option.value === activeDurationMode) ?? DURATION_OPTIONS[0];
 
   const filteredLogs = useMemo(
-    () => logs.filter((log) => inRange(log, durationMode, startDate, endDate)),
-    [logs, durationMode, startDate, endDate],
+    () => logs.filter((log) => inRange(log, activeDurationMode, startDate, endDate)),
+    [logs, activeDurationMode, startDate, endDate],
   );
 
   const chartData = useMemo(() => {
@@ -211,9 +218,15 @@ export function SpendingView({
                 instanceId="spending-duration"
                 options={DURATION_OPTIONS}
                 value={selectedDuration}
-                onChange={(option) => setDurationMode(option.value)}
+                onChange={(option) => {
+                  setDurationMode(option.value);
+                  if (option.value === "all") {
+                    setStartDate("");
+                    setEndDate("");
+                  }
+                }}
               />
-              {durationMode === "custom" && (
+              {activeDurationMode === "custom" && (
                 <>
                   <TextInput label="From" type="date" value={startDate} onChange={setStartDate} />
                   <TextInput label="To" type="date" value={endDate} onChange={setEndDate} />
@@ -298,7 +311,7 @@ function SpendingChart({ data }: { data: { name: string; amount: number; color: 
 
   return (
     <div className="h-[300px]">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <BarChart data={data} margin={{ top: 12, right: 28, left: 12, bottom: 8 }}>
           <StripeDefs prefix="stripe-spend" colors={data.map((entry) => entry.color)} />
           <CartesianGrid stroke="var(--color-line)" strokeDasharray="3 3" vertical={false} />

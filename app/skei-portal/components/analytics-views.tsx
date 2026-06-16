@@ -24,7 +24,7 @@ import {
 
 // Mirrors qualityScore() in lib/lead-analytics.ts — update both together.
 const QUALITY_SCORE_INFO =
-  "Each lead is scored from a base of 28 points plus its pipeline stage (Admitted +42, Visit Scheduled +30, Contacted +18, New +8, Closed +2), with bonuses for an email (+8), a valid 10-digit mobile (+8), detailed notes (+7) and early-years grades (+5), capped at 8–98. High is 75+, Medium 50–74, Low below 50.";
+  "Each lead is scored from a base of 28 points plus its pipeline stage (Admitted +42, Visit Scheduled +30, Contacted +18, New +8, Closed +2, Junk +0), with bonuses for an email (+8), a valid 10-digit mobile (+8), detailed notes (+7) and early-years grades (+5), capped at 8–98. High is 75+, Medium 50–74, Low below 50.";
 
 export function OverviewView({
   analytics,

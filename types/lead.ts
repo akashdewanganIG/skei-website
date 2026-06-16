@@ -32,7 +32,14 @@ export type Session = {
   permissions: AdminPermission[];
 };
 
-export const LEAD_STATUSES = ["New", "Contacted", "Visit Scheduled", "Admitted", "Closed"] as const;
+export const LEAD_STATUSES = [
+  "New",
+  "Contacted",
+  "Visit Scheduled",
+  "Admitted",
+  "Closed",
+  "Junk",
+] as const;
 
 export type LeadStatus = (typeof LEAD_STATUSES)[number];
 

@@ -57,6 +57,13 @@
       "when": 1781171891153,
       "tag": "0007_perpetual_lionheart",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1781613719000,
+      "tag": "0008_add_junk_status",
+      "breakpoints": true
     }
   ]
 }

@@ -17,7 +17,7 @@ export const LEAD_SECTIONS: {
   { key: "all", label: "Main leads", statuses: null },
   { key: "active", label: "Follow-up", statuses: ["Contacted", "Visit Scheduled"] },
   { key: "enrolled", label: "Enrolled batch", statuses: ["Admitted"] },
-  { key: "not_converted", label: "Not converted", statuses: ["Closed"] },
+  { key: "not_converted", label: "Not converted", statuses: ["Closed", "Junk"] },
   { key: "new", label: "New enquiries", statuses: ["New"] },
 ];
 
