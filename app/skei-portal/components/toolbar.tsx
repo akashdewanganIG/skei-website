@@ -2,18 +2,24 @@
 
 import {
   RiCloseCircleLine,
-  RiCalendarLine,
   RiDownloadLine,
   RiRefreshLine,
   RiSearchLine,
   RiUploadLine,
   RiUserAddLine,
 } from "@remixicon/react";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Select } from "@/components/ui/select";
 import type { CampaignSourceFilter } from "@/lib/campaign-attribution";
 import { STATUS_FILTER_OPTIONS } from "../portal-constants";
 import type { Filter, SelectOption } from "../portal-types";
+
+type DurationMode = "all" | "custom";
+
+const DURATION_OPTIONS: SelectOption<DurationMode>[] = [
+  { value: "all", label: "All time" },
+  { value: "custom", label: "Custom range" },
+];
 
 export function Toolbar({
   search,
@@ -71,6 +77,10 @@ export function Toolbar({
   canImport: boolean;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [durationMode, setDurationMode] = useState<DurationMode>("all");
+  const activeDurationMode: DurationMode = startDate || endDate ? "custom" : durationMode;
+  const selectedDuration =
+    DURATION_OPTIONS.find((option) => option.value === activeDurationMode) ?? DURATION_OPTIONS[0];
 
   const statusSelectValue =
     STATUS_FILTER_OPTIONS.find((option) => option.value === statusFilter) ??
@@ -101,7 +111,7 @@ export function Toolbar({
           e.target.value = "";
         }}
       />
-      <div className="flex flex-col gap-2 xl:flex-row xl:items-center">
+      <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
         <div className="relative min-w-0 flex-1">
           <RiSearchLine className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted/60" />
           <input
@@ -110,6 +120,91 @@ export function Toolbar({
             placeholder="Search leads, parents, phone, email..."
             className="h-10 w-full rounded-lg border border-line bg-surface pl-10 pr-3 text-sm text-fg placeholder:text-muted/60 outline-none transition-colors focus:border-clay/50 focus:ring-2 focus:ring-clay/20"
           />
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="min-w-0 sm:w-[160px]">
+            <Select
+              instanceId="lead-duration-filter"
+              options={DURATION_OPTIONS}
+              value={selectedDuration}
+              isSearchable={false}
+              onChange={(option: unknown) => {
+                const selected = option as SelectOption<DurationMode> | null;
+                if (!selected) return;
+                setDurationMode(selected.value);
+                if (selected.value === "all") {
+                  setStartDate("");
+                  setEndDate("");
+                }
+              }}
+            />
+          </div>
+          {activeDurationMode === "custom" && (
+            <>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(event) => setStartDate(event.target.value)}
+                className="h-10 min-w-0 rounded-lg border border-line bg-surface px-3 text-sm text-fg outline-none transition-colors focus:border-clay/50 focus:ring-2 focus:ring-clay/20"
+              />
+              <input
+                type="date"
+                value={endDate}
+                onChange={(event) => setEndDate(event.target.value)}
+                className="h-10 min-w-0 rounded-lg border border-line bg-surface px-3 text-sm text-fg outline-none transition-colors focus:border-clay/50 focus:ring-2 focus:ring-clay/20"
+              />
+            </>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={refresh}
+          className="flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-line bg-surface px-3 text-sm font-medium text-fg/75 transition-colors hover:bg-fg/[0.04] hover:text-fg sm:min-w-[8rem] sm:px-4"
+        >
+          <RiRefreshLine className={`h-4 w-4 shrink-0 ${refreshing ? "animate-spin" : ""}`} />
+          <span className="truncate">Refresh</span>
+        </button>
+      </div>
+      <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(140px,0.8fr)_minmax(140px,0.8fr)_minmax(180px,1fr)] xl:flex-1">
+          <div className="min-w-0">
+            <Select
+              instanceId="lead-status-filter"
+              options={STATUS_FILTER_OPTIONS}
+              value={statusSelectValue}
+              isSearchable={false}
+              onChange={(option: unknown) => {
+                const selected = option as SelectOption<Filter> | null;
+                if (selected) setStatusFilter(selected.value);
+              }}
+            />
+          </div>
+          <div className="min-w-0">
+            <Select
+              instanceId="lead-grade-filter"
+              options={gradeSelectOptions}
+              value={gradeSelectValue}
+              isSearchable={false}
+              onChange={(option: unknown) => {
+                const selected = option as SelectOption<string> | null;
+                if (selected) setGradeFilter(selected.value);
+              }}
+            />
+          </div>
+          {showCampaignFilter && (
+            <div className="min-w-0">
+              <Select
+                instanceId="lead-campaign-filter"
+                options={sourceOptions}
+                value={sourceSelectValue}
+                isSearchable={false}
+                onChange={(option: unknown) => {
+                  const selected = option as SelectOption<CampaignSourceFilter> | null;
+                  if (selected) setSourceFilter(selected.value);
+                }}
+              />
+            </div>
+          )}
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap xl:justify-end">
           {canAddLead && addLead && (
@@ -122,14 +217,6 @@ export function Toolbar({
               <span className="truncate">Add lead</span>
             </button>
           )}
-          <button
-            type="button"
-            onClick={refresh}
-            className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-lg border border-line bg-surface px-3 text-sm font-medium text-fg/75 transition-colors hover:bg-fg/[0.04] hover:text-fg sm:min-w-[8rem] sm:px-4"
-          >
-            <RiRefreshLine className={`h-4 w-4 shrink-0 ${refreshing ? "animate-spin" : ""}`} />
-            <span className="truncate">Refresh</span>
-          </button>
           {canImport && (
             <button
               type="button"
@@ -161,74 +248,6 @@ export function Toolbar({
               <span className="truncate">Clear</span>
             </button>
           )}
-        </div>
-      </div>
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(140px,0.8fr)_minmax(140px,0.8fr)_minmax(180px,1fr)_minmax(320px,1.35fr)]">
-        <div className="min-w-0">
-          <Select
-            instanceId="lead-status-filter"
-            options={STATUS_FILTER_OPTIONS}
-            value={statusSelectValue}
-            isSearchable={false}
-            onChange={(option: unknown) => {
-              const selected = option as SelectOption<Filter> | null;
-              if (selected) setStatusFilter(selected.value);
-            }}
-          />
-        </div>
-        <div className="min-w-0">
-          <Select
-            instanceId="lead-grade-filter"
-            options={gradeSelectOptions}
-            value={gradeSelectValue}
-            isSearchable={false}
-            onChange={(option: unknown) => {
-              const selected = option as SelectOption<string> | null;
-              if (selected) setGradeFilter(selected.value);
-            }}
-          />
-        </div>
-        {showCampaignFilter && (
-          <div className="min-w-0">
-            <Select
-              instanceId="lead-campaign-filter"
-              options={sourceOptions}
-              value={sourceSelectValue}
-              isSearchable={false}
-              onChange={(option: unknown) => {
-                const selected = option as SelectOption<CampaignSourceFilter> | null;
-                if (selected) setSourceFilter(selected.value);
-              }}
-            />
-          </div>
-        )}
-        <div className="min-w-0 rounded-lg border border-line bg-surface p-1 transition-colors focus-within:border-clay/50 focus-within:ring-2 focus-within:ring-clay/20 sm:col-span-2 lg:col-span-1">
-          <div className="grid gap-1 sm:grid-cols-2">
-            <label className="flex h-8 min-w-0 items-center gap-2 rounded-md bg-bg/45 px-2.5">
-              <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-muted">
-                <RiCalendarLine className="h-3.5 w-3.5" />
-                From
-              </span>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(event) => setStartDate(event.target.value)}
-                className="min-w-0 flex-1 bg-transparent text-sm text-fg outline-none"
-              />
-            </label>
-            <label className="flex h-8 min-w-0 items-center gap-2 rounded-md bg-bg/45 px-2.5">
-              <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-muted">
-                <RiCalendarLine className="h-3.5 w-3.5" />
-                To
-              </span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(event) => setEndDate(event.target.value)}
-                className="min-w-0 flex-1 bg-transparent text-sm text-fg outline-none"
-              />
-            </label>
-          </div>
         </div>
       </div>
     </section>
