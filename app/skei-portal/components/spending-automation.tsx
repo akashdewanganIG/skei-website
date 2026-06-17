@@ -11,6 +11,7 @@ import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { campaignParentOptions } from "@/lib/campaign-attribution";
 import type { CampaignCategory, MetaSyncStatus, SpendConnection } from "../portal-types";
+import { ConfirmDialog } from "./confirm-dialog";
 import { EmptyInline } from "./empty-states";
 import { SelectField, TextInput } from "./form-fields";
 
@@ -105,6 +106,7 @@ export function SpendingAutomation({
   const ingestUrl = `${origin}/api/spend-ingest`;
 
   const [connections, setConnections] = useState<SpendConnection[]>([]);
+  const [revokeTarget, setRevokeTarget] = useState<SpendConnection | null>(null);
   const [connName, setConnName] = useState("");
   const [connSource, setConnSource] = useState(parentOptions[0]?.value ?? "");
   const [creating, setCreating] = useState(false);
@@ -189,22 +191,16 @@ export function SpendingAutomation({
     }
   };
 
-  const handleDeleteConnection = async (connection: SpendConnection) => {
-    if (!confirm(`Revoke "${connection.name}"? Anything still using this key will stop working.`)) {
-      return;
-    }
-    try {
-      const response = await fetch(
-        `/api/admin/spend-connections?id=${encodeURIComponent(connection.id)}`,
-        { method: "DELETE" },
-      );
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || "Failed to revoke connection.");
-      setConnections(connections.filter((item) => item.id !== connection.id));
-      toast.success("Connection revoked.");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to revoke connection.");
-    }
+  const performRevokeConnection = async () => {
+    if (!revokeTarget) return;
+    const response = await fetch(
+      `/api/admin/spend-connections?id=${encodeURIComponent(revokeTarget.id)}`,
+      { method: "DELETE" },
+    );
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Failed to revoke connection.");
+    setConnections(connections.filter((item) => item.id !== revokeTarget.id));
+    toast.success("Connection revoked.");
   };
 
   const handleSaveMeta = async (event: FormEvent) => {
@@ -362,7 +358,7 @@ export function SpendingAutomation({
                     </div>
                     <button
                       type="button"
-                      onClick={() => handleDeleteConnection(connection)}
+                      onClick={() => setRevokeTarget(connection)}
                       className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-muted transition-colors hover:bg-clay/10 hover:text-clay"
                     >
                       <RiDeleteBinLine className="h-4 w-4" />
@@ -448,6 +444,22 @@ export function SpendingAutomation({
           </form>
         </div>
       </div>
+
+      {revokeTarget && (
+        <ConfirmDialog
+          title="Revoke connection"
+          destructive
+          confirmLabel="Revoke key"
+          message={
+            <>
+              Revoke <span className="font-semibold text-fg">{revokeTarget.name}</span>? Anything
+              still using this key will stop working immediately. This cannot be undone.
+            </>
+          }
+          onConfirm={performRevokeConnection}
+          onClose={() => setRevokeTarget(null)}
+        />
+      )}
     </section>
   );
 }

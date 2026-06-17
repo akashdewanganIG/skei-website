@@ -61,9 +61,7 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 
   if ("name" in body) {
-    const name = toTrimmedString(body.name);
-    if (name.length < 2) return error("Name is required.");
-    input.name = name;
+    input.name = toTrimmedString(body.name);
   }
 
   if ("email" in body) {

@@ -17,6 +17,7 @@ import { campaignParentOptions } from "@/lib/campaign-attribution";
 import { compareDateOnly, formatDateOnly, parseDateOnly, todayDateOnly } from "@/lib/date-only";
 import type { CampaignCategory, SelectOption, SpendLog } from "../portal-types";
 import { formatCurrency } from "../portal-utils";
+import { ConfirmDialog } from "./confirm-dialog";
 import { EmptyInline } from "./empty-states";
 import { SelectField, TextInput } from "./form-fields";
 import { BAR_CURSOR, COLUMN_RADIUS, StripeDefs, stripeFill } from "./lead-charts";
@@ -41,8 +42,7 @@ function inRange(log: SpendLog, mode: DurationMode, startDate: string, endDate: 
   const start = parseDateOnly(startDate);
   const end = parseDateOnly(endDate);
   return (
-    (!start || compareDateOnly(logDate, start) >= 0) &&
-    (!end || compareDateOnly(logDate, end) <= 0)
+    (!start || compareDateOnly(logDate, start) >= 0) && (!end || compareDateOnly(logDate, end) <= 0)
   );
 }
 
@@ -71,6 +71,7 @@ export function SpendingView({
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(() => dateInputValue());
   const [durationMode, setDurationMode] = useState<DurationMode>("all");
+  const [deleteTarget, setDeleteTarget] = useState<SpendLog | null>(null);
   const activeDurationMode: DurationMode = startDate || endDate ? "custom" : durationMode;
   const activeSource = parentOptions.some((option) => option.value === source)
     ? source
@@ -123,9 +124,8 @@ export function SpendingView({
       if (!response.ok) throw new Error(data.error || "Failed to log spend.");
 
       onLogsUpdate(
-        [data.spend as SpendLog, ...logs].sort(
-          (a, b) =>
-            compareDateOnly(parseDateOnly(b.date) ?? "", parseDateOnly(a.date) ?? ""),
+        [data.spend as SpendLog, ...logs].sort((a, b) =>
+          compareDateOnly(parseDateOnly(b.date) ?? "", parseDateOnly(a.date) ?? ""),
         ),
       );
       setAmount("");
@@ -147,19 +147,16 @@ export function SpendingView({
     }
   };
 
-  const handleDeleteLog = async (id: string) => {
-    if (!confirm("Delete this spending log?")) return;
-    try {
-      const response = await fetch(`/api/admin/marketing-spends?id=${encodeURIComponent(id)}`, {
-        method: "DELETE",
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || "Failed to delete spend.");
-      onLogsUpdate(logs.filter((log) => log.id !== id));
-      toast.success("Spending log deleted.");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to delete spend.");
-    }
+  const performDeleteLog = async () => {
+    if (!deleteTarget) return;
+    const response = await fetch(
+      `/api/admin/marketing-spends?id=${encodeURIComponent(deleteTarget.id)}`,
+      { method: "DELETE" },
+    );
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Failed to delete spend.");
+    onLogsUpdate(logs.filter((log) => log.id !== deleteTarget.id));
+    toast.success("Spending log deleted.");
   };
 
   return (
@@ -266,9 +263,7 @@ export function SpendingView({
               ) : (
                 filteredLogs.map((log) => (
                   <tr key={log.id} className="transition-colors hover:bg-bg/45">
-                    <td className="px-4 py-3 text-fg">
-                      {formatDateOnly(log.date)}
-                    </td>
+                    <td className="px-4 py-3 text-fg">{formatDateOnly(log.date)}</td>
                     <td className="px-4 py-3 font-medium text-fg">{log.source}</td>
                     <td className="px-4 py-3 text-right font-semibold text-fg">
                       {formatCurrency(Number(log.amount) || 0)}
@@ -278,7 +273,7 @@ export function SpendingView({
                       <td className="px-4 py-3 text-right">
                         <button
                           type="button"
-                          onClick={() => handleDeleteLog(log.id)}
+                          onClick={() => setDeleteTarget(log)}
                           className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-muted transition-colors hover:bg-clay/10 hover:text-clay"
                           aria-label="Delete spending log"
                         >
@@ -296,6 +291,27 @@ export function SpendingView({
       </section>
 
       {canManage && <SpendingAutomation categories={categories} onSpendsChanged={reloadLogs} />}
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title="Delete spending log"
+          destructive
+          confirmLabel="Delete log"
+          message={
+            <>
+              Delete the{" "}
+              <span className="font-semibold text-fg">
+                {formatCurrency(Number(deleteTarget.amount) || 0)}
+              </span>{" "}
+              spend logged against{" "}
+              <span className="font-semibold text-fg">{deleteTarget.source}</span> on{" "}
+              {formatDateOnly(deleteTarget.date)}? This cannot be undone.
+            </>
+          }
+          onConfirm={performDeleteLog}
+          onClose={() => setDeleteTarget(null)}
+        />
+      )}
     </div>
   );
 }

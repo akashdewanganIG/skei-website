@@ -61,6 +61,17 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     patch[field] = String(body[field]);
   }
 
+  // Campaign reassignment: set the lead's attributed source directly.
+  if (body.source !== undefined) {
+    if (!hasPermission(session, "edit_leads")) {
+      return NextResponse.json(
+        { error: "You do not have permission to edit lead details." },
+        { status: 403 },
+      );
+    }
+    patch.source = String(body.source).slice(0, 180);
+  }
+
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: "Nothing to update." }, { status: 400 });
   }

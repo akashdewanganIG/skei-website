@@ -7,9 +7,12 @@ import {
   RiEditLine,
   RiSaveLine,
 } from "@remixicon/react";
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { inferCampaignSource } from "@/lib/campaign-attribution";
+import type { Lead } from "@/types/lead";
 import type { CampaignCategory } from "../portal-types";
+import { ConfirmDialog } from "./confirm-dialog";
 
 const DEFAULT_COLOR = "#d9481e";
 
@@ -30,12 +33,21 @@ function splitTags(value: string): string[] {
 
 export function CampaignsView({
   categories,
+  leads,
   canManage,
+  canDeleteLeads,
   onCategoriesUpdate,
+  onLeadsDeleted,
 }: {
   categories: CampaignCategory[];
+  leads: Lead[];
   canManage: boolean;
-  onCategoriesUpdate: (categories: CampaignCategory[]) => void;
+  canDeleteLeads: boolean;
+  onCategoriesUpdate: (
+    categories: CampaignCategory[],
+    rename?: { from: string; to: string },
+  ) => void;
+  onLeadsDeleted: (ids: string[]) => void;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -44,6 +56,16 @@ export function CampaignsView({
   const [utmTagsDraft, setUtmTagsDraft] = useState<Record<string, string>>({});
   const [adPlatform, setAdPlatform] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<CampaignCategory | null>(null);
+  const [alsoDeleteLeads, setAlsoDeleteLeads] = useState(false);
+  const formRef = useRef<HTMLElement>(null);
+
+  const affectedLeadIds = useMemo(() => {
+    if (!deleteTarget) return [];
+    return leads
+      .filter((lead) => inferCampaignSource(lead, categories).parent === deleteTarget.name)
+      .map((lead) => lead.id);
+  }, [deleteTarget, leads, categories]);
 
   const sourcePreview = useMemo(() => splitSources(sourcesText), [sourcesText]);
   const tagTargets = useMemo(() => {
@@ -74,6 +96,8 @@ export function CampaignsView({
         targets.map((target) => [target, (category.utmTags?.[target] ?? []).join(", ")]),
       ),
     );
+    // Bring the edit form into view so the change is obvious on long lists.
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const saveCategory = async (event: FormEvent) => {
@@ -105,10 +129,13 @@ export function CampaignsView({
       if (!response.ok) throw new Error(data.error || "Could not save campaign group.");
 
       const saved = data.category as CampaignCategory;
+      const rename =
+        editing && editing.name !== saved.name ? { from: editing.name, to: saved.name } : undefined;
       onCategoriesUpdate(
         editing
           ? categories.map((category) => (category.id === saved.id ? saved : category))
           : [...categories, saved],
+        rename,
       );
       toast.success(editing ? "Campaign group updated." : "Campaign group created.");
       resetForm();
@@ -119,29 +146,48 @@ export function CampaignsView({
     }
   };
 
-  const deleteCategory = async (category: CampaignCategory) => {
-    if (!confirm(`Delete ${category.name}? Spending logs for this group will remain in history.`)) {
-      return;
-    }
+  const openDeleteDialog = (category: CampaignCategory) => {
+    setDeleteTarget(category);
+    setAlsoDeleteLeads(false);
+  };
 
-    try {
-      const response = await fetch(`/api/admin/categories?id=${encodeURIComponent(category.id)}`, {
+  const performDelete = async () => {
+    if (!deleteTarget) return;
+    const removeLeads = alsoDeleteLeads && canDeleteLeads && affectedLeadIds.length > 0;
+
+    const response = await fetch(
+      `/api/admin/categories?id=${encodeURIComponent(deleteTarget.id)}`,
+      {
         method: "DELETE",
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || "Could not delete campaign group.");
-      onCategoriesUpdate(categories.filter((item) => item.id !== category.id));
-      if (editingId === category.id) resetForm();
+        ...(removeLeads
+          ? {
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ deleteLeadIds: affectedLeadIds }),
+            }
+          : {}),
+      },
+    );
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Could not delete campaign group.");
+
+    onCategoriesUpdate(categories.filter((item) => item.id !== deleteTarget.id));
+    if (editingId === deleteTarget.id) resetForm();
+    if (removeLeads) {
+      onLeadsDeleted(affectedLeadIds);
+      const count = data.deletedLeads ?? affectedLeadIds.length;
+      toast.success(`Campaign group and ${count} lead${count === 1 ? "" : "s"} deleted.`);
+    } else {
       toast.success("Campaign group deleted.");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not delete campaign group.");
     }
   };
 
   return (
     <div className="space-y-5">
       {canManage && (
-        <section className="rounded-lg border border-line bg-surface shadow-soft">
+        <section
+          ref={formRef}
+          className="scroll-mt-24 rounded-lg border border-line bg-surface shadow-soft"
+        >
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
             <div>
               <h2 className="text-sm font-semibold text-fg">
@@ -316,7 +362,7 @@ export function CampaignsView({
                         </button>
                         <button
                           type="button"
-                          onClick={() => deleteCategory(category)}
+                          onClick={() => openDeleteDialog(category)}
                           className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-muted transition-colors hover:bg-clay/10 hover:text-clay"
                           aria-label={`Delete ${category.name}`}
                         >
@@ -332,6 +378,48 @@ export function CampaignsView({
           )}
         </div>
       </section>
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title="Delete campaign group"
+          destructive
+          confirmLabel="Delete group"
+          message={
+            <>
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-fg">{deleteTarget.name}</span>? Spending logs for
+              this group will remain in history.
+            </>
+          }
+          onConfirm={performDelete}
+          onClose={() => setDeleteTarget(null)}
+        >
+          {affectedLeadIds.length === 0 ? (
+            <p className="text-xs text-muted">No leads are currently attributed to this group.</p>
+          ) : canDeleteLeads ? (
+            <label className="flex items-start gap-2 rounded-lg border border-line bg-bg/40 px-3 py-2.5 text-sm text-fg">
+              <input
+                type="checkbox"
+                checked={alsoDeleteLeads}
+                onChange={(event) => setAlsoDeleteLeads(event.target.checked)}
+                className="mt-0.5 h-4 w-4 accent-clay"
+              />
+              <span>
+                Also delete the {affectedLeadIds.length} lead
+                {affectedLeadIds.length === 1 ? "" : "s"} attributed to this group.
+                <span className="mt-0.5 block text-xs text-muted">
+                  Leave unchecked to keep them — they’ll move to “Unassigned”.
+                </span>
+              </span>
+            </label>
+          ) : (
+            <p className="text-xs text-muted">
+              {affectedLeadIds.length} lead{affectedLeadIds.length === 1 ? "" : "s"} will move to
+              “Unassigned”.
+            </p>
+          )}
+        </ConfirmDialog>
+      )}
     </div>
   );
 }

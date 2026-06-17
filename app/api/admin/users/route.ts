@@ -49,7 +49,6 @@ export async function POST(request: Request) {
       "Username must be 3-32 characters using letters, numbers, dot, dash, or underscore.",
     );
   }
-  if (name.length < 2) return error("Name is required.");
   if (!isValidEmail(email)) return error("Enter a valid email address.");
   if (password.length < 8) return error("Password must be at least 8 characters.");
 

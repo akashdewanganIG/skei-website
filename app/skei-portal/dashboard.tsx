@@ -331,6 +331,19 @@ export function Dashboard({
     toast.success("Lead added.");
   }, []);
 
+  const updateCategories = useCallback(
+    (nextCategories: CampaignCategory[], rename?: { from: string; to: string }) => {
+      setCategories(nextCategories);
+      if (!rename || rename.from === rename.to) return;
+      setMarketingLogs((current) =>
+        current.map((log) =>
+          log.source === rename.from ? { ...log, source: rename.to } : log,
+        ),
+      );
+    },
+    [],
+  );
+
   const logout = useCallback(async () => {
     await fetch("/api/admin/logout", { method: "POST" }).catch(() => {});
     router.replace("/skei-portal/login");
@@ -548,8 +561,13 @@ export function Dashboard({
             {view === "campaigns" && canViewCampaigns && (
               <CampaignsView
                 categories={categories}
+                leads={leads}
                 canManage={canManageCampaigns}
-                onCategoriesUpdate={setCategories}
+                canDeleteLeads={canDeleteLeads}
+                onCategoriesUpdate={updateCategories}
+                onLeadsDeleted={(ids) =>
+                  setLeads((current) => current.filter((lead) => !ids.includes(lead.id)))
+                }
               />
             )}
 
@@ -575,6 +593,7 @@ export function Dashboard({
         {selected && (
           <LeadDetail
             lead={selected}
+            categories={categories}
             canEditRemarks={canEditRemarks}
             canEditDetails={canEditDetails}
             canManageStatus={canManageStatus}

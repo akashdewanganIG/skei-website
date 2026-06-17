@@ -108,8 +108,8 @@ export function AccountView({ session }: { session: Session }) {
           className="grid gap-3 p-4 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end"
         >
           <TextInput label="Name" value={name} onChange={setName} />
-          <TextInput label="Username" value={username} onChange={setUsername} />
-          <TextInput label="Email" type="email" value={email} onChange={setEmail} />
+          <TextInput label="Username *" value={username} onChange={setUsername} />
+          <TextInput label="Email *" type="email" value={email} onChange={setEmail} />
           <button
             type="submit"
             disabled={
@@ -134,19 +134,19 @@ export function AccountView({ session }: { session: Session }) {
           className="grid gap-3 p-4 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end"
         >
           <TextInput
-            label="Current password"
+            label="Current password *"
             type="password"
             value={currentPassword}
             onChange={setCurrentPassword}
           />
           <TextInput
-            label="New password"
+            label="New password *"
             type="password"
             value={nextPassword}
             onChange={setNextPassword}
           />
           <TextInput
-            label="Confirm password"
+            label="Confirm password *"
             type="password"
             value={confirmPassword}
             onChange={setConfirmPassword}

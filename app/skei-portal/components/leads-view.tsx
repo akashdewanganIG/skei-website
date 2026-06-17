@@ -106,7 +106,7 @@ function LeadTable({
 }) {
   return (
     <div className="hidden overflow-x-auto lg:block">
-      <table className="w-full min-w-[1220px] text-sm">
+      <table className="w-full min-w-[880px] text-sm">
         <thead>
           <tr className="border-b border-line bg-bg/45 text-left text-[0.68rem] uppercase tracking-wide text-muted">
             <th className="px-4 py-3 font-semibold">Student</th>
@@ -114,10 +114,8 @@ function LeadTable({
             <th className="px-4 py-3 font-semibold">Grade</th>
             <th className="px-4 py-3 font-semibold">Parent</th>
             <th className="px-4 py-3 font-semibold">Contact</th>
-            <th className="px-4 py-3 font-semibold">Comment</th>
             <th className="px-4 py-3 font-semibold">Date</th>
             <th className="px-4 py-3 font-semibold">Status</th>
-            <th className="px-4 py-3 font-semibold">Remark</th>
           </tr>
         </thead>
         <tbody>
@@ -127,9 +125,9 @@ function LeadTable({
               <tr
                 key={lead.id}
                 onClick={() => onOpen(lead.id)}
-                className="cursor-pointer border-b border-line/70 transition-colors last:border-0 hover:bg-bg/55"
+                className="cursor-pointer border-b border-line/70 align-middle transition-colors last:border-0 hover:bg-bg/55"
               >
-                <td className="px-4 py-3">
+                <td className="px-4 py-3.5">
                   <div className="flex items-center gap-3">
                     <span
                       className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[0.7rem] font-bold"
@@ -140,28 +138,31 @@ function LeadTable({
                     >
                       {initials(lead.student_name)}
                     </span>
-                    <span className="font-medium text-fg">{lead.student_name || "Unnamed"}</span>
+                    <span className="max-w-[12rem] truncate font-medium text-fg">
+                      {lead.student_name || "Unnamed"}
+                    </span>
                   </div>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3.5">
                   <CampaignBadge source={source.name} />
                 </td>
-                <td className="px-4 py-3 text-muted">{lead.grade || "-"}</td>
-                <td className="px-4 py-3 text-muted">{lead.parent_name || "-"}</td>
-                <td className="px-4 py-3">
+                <td className="whitespace-nowrap px-4 py-3.5 text-muted">{lead.grade || "-"}</td>
+                <td className="max-w-[12rem] truncate px-4 py-3.5 text-muted">
+                  {lead.parent_name || "-"}
+                </td>
+                <td className="px-4 py-3.5">
                   <div className="text-fg">{lead.mobile_no || "-"}</div>
-                  <div className="text-xs text-muted">{lead.email || "-"}</div>
+                  {lead.email && (
+                    <div className="max-w-[14rem] truncate text-xs text-muted">{lead.email}</div>
+                  )}
                 </td>
-                <td className="max-w-[18rem] px-4 py-3 text-muted">
-                  <span className="line-clamp-2">{lead.comment || "-"}</span>
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-muted">
+                <td className="whitespace-nowrap px-4 py-3.5 text-muted">
                   {lead.submit_date || "-"}
                 </td>
                 {/* The Select menu portals to document.body, so the click still bubbles
                     through React's tree to the row — stop it here instead. */}
                 <td
-                  className="px-4 py-3"
+                  className="px-4 py-3.5"
                   onClick={(event) => event.stopPropagation()}
                   onKeyDown={(event) => event.stopPropagation()}
                 >
@@ -173,9 +174,6 @@ function LeadTable({
                   ) : (
                     <OrangeStatusBadge status={lead.status} />
                   )}
-                </td>
-                <td className="max-w-[18rem] px-4 py-3 text-muted">
-                  <span className="line-clamp-2">{lead.remark || "-"}</span>
                 </td>
               </tr>
             );

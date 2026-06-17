@@ -233,6 +233,13 @@ export function inferCampaignSource(
     if (source) return source;
   }
 
+  // An exact, stored source that matches a defined campaign is an intentional
+  // signal — captured at submit time or set by an admin reassigning the lead —
+  // so it outranks heuristic UTM/referrer matching below.
+  if (savedSource && isCampaignSourceName(savedSource, categories)) {
+    return sourceByName(savedSource, categories);
+  }
+
   const attributed = inferSourceFromAttribution(
     {
       utmSource: lead.utm_source,
@@ -246,10 +253,6 @@ export function inferCampaignSource(
     categories,
   );
   if (attributed.name !== FALLBACK_SOURCE.name) return attributed;
-
-  if (savedSource && isCampaignSourceName(savedSource, categories)) {
-    return sourceByName(savedSource, categories);
-  }
 
   return FALLBACK_SOURCE;
 }
