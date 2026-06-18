@@ -1,7 +1,8 @@
+import { GoogleTagManager } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
-import { inter, lora, jetbrainsMono, caveat } from "./fonts";
 import { CONTACT, SOCIALS } from "@/lib/constants";
+import { caveat, inter, jetbrainsMono, lora } from "./fonts";
 import "./globals.css";
 
 const schoolJsonLd = {
@@ -117,7 +118,19 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           }}
         />
       </head>
+      <GoogleTagManager gtmId="GTM-M45PJ6D2" />
       <body className="grain antialiased">
+        {/* Google Tag Manager (noscript) — component above does not render a no-JS fallback. */}
+        <noscript>
+          <iframe
+            title="Google Tag Manager"
+            src="https://www.googletagmanager.com/ns.html?id=GTM-M45PJ6D2"
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
+        {/* End Google Tag Manager (noscript) */}
         {children}
         <Toaster
           richColors
