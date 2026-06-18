@@ -42,7 +42,7 @@ export function Toolbar({
   refreshing,
   refresh,
   addLead,
-  exportCsv,
+  exportLeads,
   importCsv,
   canAddLead,
   canExport,
@@ -69,7 +69,7 @@ export function Toolbar({
   refreshing: boolean;
   refresh: () => void;
   addLead?: () => void;
-  exportCsv: () => void;
+  exportLeads: () => void | Promise<void>;
   importCsv?: (file: File) => void;
   canAddLead: boolean;
   canExport: boolean;
@@ -103,7 +103,7 @@ export function Toolbar({
       <input
         ref={fileInputRef}
         type="file"
-        accept=".csv"
+        accept=".csv,.xlsx"
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
@@ -224,18 +224,18 @@ export function Toolbar({
               className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-lg bg-clay px-3 text-sm font-semibold text-ivory transition-colors hover:bg-clay-deep sm:min-w-[9rem] sm:px-4"
             >
               <RiUploadLine className="h-4 w-4 shrink-0" />
-              <span className="truncate">Import CSV</span>
+              <span className="truncate">Import Leads</span>
             </button>
           )}
           {canExport && (
             <button
               type="button"
-              onClick={exportCsv}
+              onClick={exportLeads}
               disabled={exportDisabled}
               className="flex h-10 min-w-0 items-center justify-center gap-2 rounded-lg bg-clay px-3 text-sm font-semibold text-ivory transition-colors hover:bg-clay-deep disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-[9rem] sm:px-4"
             >
               <RiDownloadLine className="h-4 w-4 shrink-0" />
-              <span className="truncate">Export CSV</span>
+              <span className="truncate">Export Leads</span>
             </button>
           )}
           {hasFilters && (

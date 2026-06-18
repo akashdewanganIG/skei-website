@@ -48,7 +48,7 @@ import type {
   SpendLog,
   View,
 } from "./portal-types";
-import { greetingFor, initials, parseCsv, toCsv } from "./portal-utils";
+import { greetingFor, initials, leadsToXlsxBlob, parseLeadsFile } from "./portal-utils";
 
 function leadSubmitDateOnly(value: string): string | null {
   const [day, month, year] = value.split("-").map((part) => part.trim());
@@ -104,6 +104,7 @@ export function Dashboard({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [addingLead, setAddingLead] = useState(false);
   const [importPreview, setImportPreview] = useState<{ file: File; rows: Record<string, string>[] } | null>(null);
+  const [parsingFile, setParsingFile] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [marketingLogs, setMarketingLogs] = useState<SpendLog[]>([]);
   const [categories, setCategories] = useState<CampaignCategory[]>([]);
@@ -350,35 +351,39 @@ export function Dashboard({
     router.refresh();
   }, [router]);
 
-  const exportCsv = useCallback(() => {
-    const blob = new Blob([toCsv(sectionedLeads)], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `skei-leads-${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+  const exportLeads = useCallback(async () => {
+    try {
+      const blob = await leadsToXlsxBlob(sectionedLeads);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `skei-leads-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Could not generate the Excel file.");
+    }
   }, [sectionedLeads]);
 
   const handleFileSelect = useCallback(async (file: File) => {
-    let text: string;
+    setParsingFile(true);
+    let rows: Record<string, string>[];
     try {
-      text = await file.text();
+      rows = await parseLeadsFile(file);
     } catch {
       toast.error("Could not read the file.");
+      setParsingFile(false);
       return;
     }
-    const rows = parseCsv(text);
+    setParsingFile(false);
     if (rows.length === 0) {
-      toast.error("No data rows found in the CSV file.");
+      toast.error("No leads could be read from this file.");
       return;
     }
     setImportPreview({ file, rows });
   }, []);
 
-  const handleImportConfirm = useCallback(async () => {
-    if (!importPreview) return;
-    const { rows } = importPreview;
+  const handleImportConfirm = useCallback(async (rows: Record<string, string>[]) => {
     const res = await fetch("/api/admin/leads/import", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -395,7 +400,7 @@ export function Dashboard({
       );
     }
     await refresh();
-  }, [importPreview, refresh]);
+  }, [refresh]);
 
   return (
     <div className="min-h-dvh bg-bg text-fg">
@@ -520,7 +525,7 @@ export function Dashboard({
                 refreshing={refreshing}
                 refresh={refresh}
                 addLead={() => setAddingLead(true)}
-                exportCsv={exportCsv}
+                exportLeads={exportLeads}
                 importCsv={handleFileSelect}
                 canAddLead={view === "leads" && canEditDetails}
                 canExport={view === "leads" && canExportLeads}
@@ -621,6 +626,14 @@ export function Dashboard({
           onConfirm={handleImportConfirm}
           onClose={() => setImportPreview(null)}
         />
+      )}
+      {parsingFile && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-ink/40 backdrop-blur-sm">
+          <div className="flex items-center gap-3 rounded-2xl border border-line bg-surface px-6 py-5 shadow-lift">
+            <span className="h-5 w-5 animate-spin rounded-full border-2 border-clay/30 border-t-clay" />
+            <span className="text-sm font-medium text-fg">Reading file…</span>
+          </div>
+        </div>
       )}
     </div>
   );
