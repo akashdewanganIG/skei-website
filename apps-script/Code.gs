@@ -11,13 +11,14 @@
  *   1. Open your leads Google Sheet → Extensions → Apps Script.
  *   2. Replace the script contents with this file and Save.
  *   3. Project Settings → Script properties, add:
- *        API_SECRET   = <the same value as LEADS_API_SECRET in your .env>
+ *        API_SECRET   = <a long random secret for legacy API clients>
  *        SHEET_NAME   = <tab name, optional — defaults to the first sheet>
  *   4. Deploy → New deployment → type "Web app":
  *        Execute as: Me
  *        Who has access: Anyone
- *      Copy the /exec URL into LEADS_SCRIPT_URL (and keep it as
- *      NEXT_PUBLIC_GOOGLE_SCRIPT_URL for the public form).
+ *      Copy the /exec URL for any legacy client that calls this script.
+ *
+ *   The current Next.js application does not call this legacy backend.
  *   5. Re-deploy (Manage deployments → edit → new version) after any change.
  */
 

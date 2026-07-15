@@ -1,4 +1,8 @@
-# SKEI Portal: Leads Dashboard
+# Legacy Google Apps Script Leads Backend
+
+> This integration is retained for historical reference only. The current
+> website and SKEI Portal store leads in PostgreSQL through Drizzle and do not
+> call this Apps Script deployment.
 
 A private portal at **`/skei-portal`** for viewing and managing enquiry leads.
 There is intentionally **no link to it anywhere on the public site**. Reach it by
@@ -13,17 +17,17 @@ typing the URL.
 
 ## One-time setup
 
-### 1. Google Apps Script (the leads backend)
+### 1. Google Apps Script (legacy setup)
 
 1. Open your leads Google Sheet → **Extensions → Apps Script**.
 2. Paste the contents of [`Code.gs`](./Code.gs), replacing what's there. Save.
 3. **Project Settings → Script properties** → add:
-   - `API_SECRET`: any long random string (you'll reuse it as `LEADS_API_SECRET`).
+   - `API_SECRET`: any long random string used by clients of this legacy script.
    - `SHEET_NAME`: optional; the tab name holding leads (defaults to the first tab).
 4. **Deploy → New deployment → Web app**
    - _Execute as:_ **Me**
    - _Who has access:_ **Anyone**
-   - Copy the `/exec` URL.
+   - Copy the `/exec` URL for any legacy client that calls the script directly.
 5. After any later edit, **Manage deployments → edit → deploy a new version**.
 
 The script auto-adds the management columns (`id`, `status`, `remark`,
@@ -55,5 +59,5 @@ and password hashes are stored in PostgreSQL, not environment variables.
 
 - Session is a signed, httpOnly cookie (HS256), verified in middleware and in every
   API route. Permission checks are re-run server-side, never trusting the client.
-- The shared `LEADS_API_SECRET` stays server-side; it is never sent to the browser.
+- The Apps Script `API_SECRET` must stay server-side; it must never be sent to a browser.
 - `/skei-portal` and `/api` are disallowed in `robots.txt` and marked `noindex`.
