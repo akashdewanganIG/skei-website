@@ -13,7 +13,7 @@ import { getTrimmedString } from "@/lib/validation";
 
 export const runtime = "nodejs";
 
-/** Client-safe view of the config — the access token never leaves the server. */
+/** Client-safe view of the config. The access token never leaves the server. */
 function toStatus(config: MetaSyncConfig) {
   return {
     enabled: config.enabled,

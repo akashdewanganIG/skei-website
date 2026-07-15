@@ -12,7 +12,7 @@
  *   2. Replace the script contents with this file and Save.
  *   3. Project Settings → Script properties, add:
  *        API_SECRET   = <a long random secret for legacy API clients>
- *        SHEET_NAME   = <tab name, optional — defaults to the first sheet>
+ *        SHEET_NAME   = <tab name, optional; defaults to the first sheet>
  *   4. Deploy → New deployment → type "Web app":
  *        Execute as: Me
  *        Who has access: Anyone

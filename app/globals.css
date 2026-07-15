@@ -242,7 +242,7 @@ html.dark [data-sonner-toaster].skei-toaster {
   margin-right: 4px;
 }
 
-/* Recharts marks its chart surface — and individual elements like pie sectors —
+/* Recharts marks its chart surface, including individual elements like pie sectors,
    focusable for keyboard a11y; suppress the global focus ring so tapping/clicking
    a chart doesn't outline the container or a slice. */
 .recharts-wrapper:focus,

@@ -128,7 +128,7 @@ export function LeadDetail({
               {lead.student_name || "Lead"}
             </h2>
             <p className="mt-0.5 text-xs text-muted">
-              {lead.grade || "—"} · Submitted {lead.submit_date || "—"}
+              {lead.grade || "Not provided"} · Submitted {lead.submit_date || "Not provided"}
             </p>
           </div>
           <button
@@ -249,7 +249,7 @@ export function LeadDetail({
                           className="w-full rounded-lg border border-fg/15 bg-bg/60 px-2.5 py-1.5 text-sm text-fg outline-none focus:border-clay/50 focus:ring-2 focus:ring-clay/25"
                         />
                       ) : (
-                        <span className="break-words">{lead[field] || "—"}</span>
+                        <span className="break-words">{lead[field] || "Not provided"}</span>
                       )}
                     </dd>
                   </div>

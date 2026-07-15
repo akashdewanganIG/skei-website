@@ -25,7 +25,7 @@ export function ImportCsvDialog({
   const [data, setData] = useState<Row[]>(() => rows.map((r) => ({ ...r })));
   const [editing, setEditing] = useState(false);
   const [importing, setImporting] = useState(false);
-  // Stable snapshot the editor renders from — read during render, so it is state.
+  // Stable snapshot rendered by the editor. It is read during render, so it is state.
   const [editorRows, setEditorRows] = useState<Row[]>([]);
   // Live edits land here (uncontrolled inputs) so typing doesn't re-render the
   // whole table; only mutated in handlers and committed to state when saved.
@@ -110,7 +110,7 @@ export function ImportCsvDialog({
                   <tr key={i} className="border-b border-line last:border-0">
                     {PREVIEW_COLUMNS.map((col) => (
                       <td key={col.key} className="max-w-[160px] truncate px-3 py-2 text-fg/80">
-                        {row[col.key] || <span className="text-muted/40">—</span>}
+                        {row[col.key] || <span className="text-muted/40">Not provided</span>}
                       </td>
                     ))}
                   </tr>

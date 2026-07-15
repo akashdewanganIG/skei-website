@@ -21,6 +21,7 @@ import { BrandLogo } from "@/components/ui/logo";
 import { canManageUsers, hasPermission } from "@/lib/auth/permissions";
 import { compareDateOnly, parseDateOnly } from "@/lib/date-only";
 import { analyzeLeads } from "@/lib/lead-analytics";
+import { excludeDuplicateLeadImports } from "@/lib/lead-deduplication";
 import {
   campaignSourceOptions,
   inferCampaignSource,
@@ -365,23 +366,40 @@ export function Dashboard({
     }
   }, [sectionedLeads]);
 
-  const handleFileSelect = useCallback(async (file: File) => {
-    setParsingFile(true);
-    let rows: Record<string, string>[];
-    try {
-      rows = await parseLeadsFile(file);
-    } catch {
-      toast.error("Could not read the file.");
+  const handleFileSelect = useCallback(
+    async (file: File) => {
+      setParsingFile(true);
+      let rows: Record<string, string>[];
+      try {
+        rows = await parseLeadsFile(file);
+      } catch {
+        toast.error("Could not read the file.");
+        setParsingFile(false);
+        return;
+      }
       setParsingFile(false);
-      return;
-    }
-    setParsingFile(false);
-    if (rows.length === 0) {
-      toast.error("No leads could be read from this file.");
-      return;
-    }
-    setImportPreview({ file, rows });
-  }, []);
+      if (rows.length === 0) {
+        toast.error("No leads could be read from this file.");
+        return;
+      }
+
+      const filtered = excludeDuplicateLeadImports(rows, leads);
+      if (filtered.rows.length === 0) {
+        toast.warning(
+          `No new leads found. All ${filtered.duplicateCount} row${filtered.duplicateCount !== 1 ? "s were" : " was"} already imported.`,
+        );
+        return;
+      }
+
+      if (filtered.duplicateCount > 0) {
+        toast.info(
+          `${filtered.duplicateCount} duplicate row${filtered.duplicateCount !== 1 ? "s were" : " was"} removed from the preview.`,
+        );
+      }
+      setImportPreview({ file, rows: filtered.rows });
+    },
+    [leads],
+  );
 
   const handleImportConfirm = useCallback(async (rows: Record<string, string>[]) => {
     const res = await fetch("/api/admin/leads/import", {
@@ -393,7 +411,7 @@ export function Dashboard({
     if (!res.ok) throw new Error(data.error || "Import failed.");
     const { imported, skipped } = data as { imported: number; skipped: number };
     if (imported === 0) {
-      toast.warning(`No new leads imported — all ${skipped} row${skipped !== 1 ? "s" : ""} were duplicates or invalid.`);
+      toast.warning(`No new leads imported. All ${skipped} row${skipped !== 1 ? "s" : ""} were duplicates or invalid.`);
     } else {
       toast.success(
         `${imported} lead${imported !== 1 ? "s" : ""} imported${skipped > 0 ? `, ${skipped} skipped (duplicates/invalid)` : ""}.`,

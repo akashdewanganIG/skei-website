@@ -282,7 +282,7 @@ export async function DELETE(request: Request) {
         );
       }
     } catch {
-      // No body (or not JSON) — nothing extra to delete.
+      // There is no body, or it is not JSON, so there is nothing extra to delete.
     }
 
     if (deleteLeadIds.length > 0 && !hasPermission(session, "delete_leads")) {

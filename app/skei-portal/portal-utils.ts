@@ -275,7 +275,7 @@ function cleanImportValue(key: string, raw: string): string {
 }
 
 /**
- * Some exports cram an entire delimited row into a single spreadsheet column —
+ * Some exports cram an entire delimited row into a single spreadsheet column.
  * this happens when a semicolon/tab CSV is opened in Excel as a comma file: the
  * real delimiter keeps the row in column A, but stray commas (inside comments)
  * spill the tail into columns B, C, … To recover the original row we rejoin the

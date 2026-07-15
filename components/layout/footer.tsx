@@ -125,7 +125,7 @@ export default function Footer() {
             </address>
           </div>
 
-          {/* Enroll CTA — below Academics + Quick Links on desktop, last when stacked */}
+          {/* Enroll CTA sits below Academics and Quick Links on desktop, and last when stacked. */}
           <div className="lg:col-start-2 lg:col-span-2 lg:row-start-2">
             <button
               type="button"

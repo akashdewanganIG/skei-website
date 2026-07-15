@@ -160,7 +160,7 @@ function LeadTable({
                   {lead.submit_date || "-"}
                 </td>
                 {/* The Select menu portals to document.body, so the click still bubbles
-                    through React's tree to the row — stop it here instead. */}
+                    through React's tree to the row. Stop it here instead. */}
                 <td
                   className="px-4 py-3.5"
                   onClick={(event) => event.stopPropagation()}

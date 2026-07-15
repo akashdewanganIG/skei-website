@@ -6,7 +6,7 @@ export type CampaignCategory = {
   color: string;
   subcategories: string[];
   utmTags: Record<string, string[]>;
-  /** Paid ad platform — eligible for spend automation. */
+  /** Paid ad platform that is eligible for spend automation. */
   adPlatform: boolean;
 };
 
@@ -40,7 +40,7 @@ const FALLBACK_SOURCE: CampaignSource = {
 
 // A search-engine referrer with no campaign tags is a free (organic) lead.
 // It maps to a campaign group named "Organic …" when one exists, otherwise to
-// this built-in bucket — never to a paid ad-platform group.
+// this built-in bucket, never to a paid ad-platform group.
 const ORGANIC_SEARCH_SOURCE: CampaignSource = {
   name: "Organic Search",
   parent: "Organic Search",
@@ -55,7 +55,7 @@ function isSearchEngineReferrer(referrer: string): boolean {
   try {
     host = new URL(referrer).hostname;
   } catch {
-    // Not a parseable URL — test the raw value.
+    // This is not a parseable URL, so test the raw value.
   }
   return SEARCH_ENGINE_HOST.test(host);
 }
@@ -152,7 +152,7 @@ export function inferSourceFromAttribution(
   categories?: readonly CampaignCategory[] | null,
 ): CampaignSource {
   // Most specific signal first: an explicit ?source= param, then the campaign
-  // name, then platform-level values — so a source tagged with its campaign
+  // name, then platform-level values. This lets a source tagged with its campaign
   // name wins over a generic platform catch-all tag like "google".
   const campaignTags = [
     attribution.source,
@@ -173,7 +173,7 @@ export function inferSourceFromAttribution(
 
   // The referrer is used when the visit carried no campaign tags at all.
   // Search-engine referrers count as organic search; any other referrer
-  // attributes to whichever group it matches — came from Instagram, counts
+  // attributes to whichever group it matches. For example, a lead from Instagram counts
   // as Instagram.
   const referrer = attribution.referrer?.trim() ?? "";
   if (campaignTags.length === 0 && referrer) {
@@ -234,7 +234,7 @@ export function inferCampaignSource(
   }
 
   // An exact, stored source that matches a defined campaign is an intentional
-  // signal — captured at submit time or set by an admin reassigning the lead —
+  // signal, whether captured at submit time or set by an admin reassigning the lead,
   // so it outranks heuristic UTM/referrer matching below.
   if (savedSource && isCampaignSourceName(savedSource, categories)) {
     return sourceByName(savedSource, categories);

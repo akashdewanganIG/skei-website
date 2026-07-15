@@ -183,7 +183,7 @@ export function SpendingAutomation({
       setConnections([data.connection as SpendConnection, ...connections]);
       setCreatedKey({ name: connName.trim(), key: data.key as string });
       setConnName("");
-      toast.success("Connection created. Copy the key now — it is shown only once.");
+      toast.success("Connection created. Copy the key now because it is shown only once.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to create connection.");
     } finally {
@@ -238,7 +238,7 @@ export function SpendingAutomation({
       if (!response.ok) throw new Error(data.error || "Meta sync failed.");
 
       if (data.meta) setMeta(data.meta as MetaSyncStatus);
-      toast.success(`Meta sync complete — ${data.synced} day(s) of spend updated.`);
+      toast.success(`Meta sync complete. ${data.synced} day(s) of spend updated.`);
       onSpendsChanged();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Meta sync failed.");
@@ -295,7 +295,7 @@ export function SpendingAutomation({
             {createdKey && (
               <div className="space-y-3 rounded-lg border border-clay/35 bg-clay/[0.06] p-3">
                 <p className="text-xs font-semibold text-clay-deep">
-                  Key for “{createdKey.name}” — copy it now, it will not be shown again.
+                  Copy the key for “{createdKey.name}” now. It will not be shown again.
                 </p>
                 <div className="flex items-center gap-2">
                   <code className="min-w-0 flex-1 truncate rounded-lg bg-fg/[0.05] px-2.5 py-2 text-xs text-fg">
@@ -324,11 +324,11 @@ export function SpendingAutomation({
                   </button>
                 </div>
                 <SnippetBlock
-                  title="Google Ads — daily push script (ready to paste)"
+                  title="Google Ads daily push script (ready to paste)"
                   snippet={googleAdsScript(ingestUrl, createdKey.key)}
                 />
                 <SnippetBlock
-                  title="Any platform — HTTP example (Zapier, Make, curl)"
+                  title="HTTP example for any platform (Zapier, Make, curl)"
                   snippet={curlExample(ingestUrl, createdKey.key)}
                 />
                 <button
@@ -336,7 +336,7 @@ export function SpendingAutomation({
                   onClick={() => setCreatedKey(null)}
                   className="text-xs font-semibold text-clay underline-offset-2 hover:underline"
                 >
-                  Done — I have copied the key
+                  Done, I have copied the key
                 </button>
               </div>
             )}
@@ -392,7 +392,7 @@ export function SpendingAutomation({
               type="password"
               value={metaToken}
               onChange={setMetaToken}
-              placeholder={meta?.hasToken ? "Saved — paste a new token to replace" : "EAAB..."}
+              placeholder={meta?.hasToken ? "Saved. Paste a new token to replace it" : "EAAB..."}
             />
             {parentOptions.length === 0 ? (
               <EmptyInline text="No ad-platform groups yet. In Campaigns, tick “Paid ad platform” on the groups you want to automate." />

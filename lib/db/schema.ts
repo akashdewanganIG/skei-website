@@ -1,12 +1,12 @@
 import { boolean, jsonb, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { type AdminPermission, LEAD_STATUSES, type Role } from "@/types/lead";
 
-/** Pipeline status — mirrors LEAD_STATUSES so the type stays the single source. */
+/** Pipeline status that mirrors LEAD_STATUSES, keeping the type as the single source. */
 export const leadStatus = pgEnum("lead_status", LEAD_STATUSES);
 
 export const leads = pgTable("leads", {
   id: uuid("id").primaryKey().defaultRandom(),
-  // Ordering / "submitted on" — the Lead.submit_date string is derived from this.
+  // Lead.submit_date is derived from this value for ordering and "submitted on" dates.
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 
   studentName: text("student_name").notNull().default(""),
@@ -67,7 +67,7 @@ export const marketingSpends = pgTable("spending_ledger", {
   date: timestamp("date").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   addedBy: text("added_by").notNull().default("admin"),
-  // Idempotency key for automated entries (webhook/Meta sync) — one row per
+  // Idempotency key for automated entries (webhook/Meta sync), with one row per
   // platform+day; re-pushes update the amount instead of duplicating. Null for
   // manual entries (Postgres treats nulls as distinct, so the unique holds).
   externalRef: text("external_ref").unique(),
@@ -100,7 +100,7 @@ export const leadCategories = pgTable("lead_categories", {
   color: text("color").notNull().default("#3f7cac"),
   subcategories: jsonb("subcategories").$type<string[]>().notNull().default([]),
   utmTags: jsonb("utm_tags").$type<Record<string, string[]>>().notNull().default({}),
-  // True for paid ad platforms (Google Ads, Meta, …) — only these are offered
+  // True for paid ad platforms (Google Ads, Meta, …). Only these are offered
   // in the spend-automation dropdowns; offline groups stay manual-only.
   adPlatform: boolean("ad_platform").notNull().default(false),
 });

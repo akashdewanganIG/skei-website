@@ -36,7 +36,7 @@ export default function Hero() {
     };
 
     // Triggered by either Enroll Now button (navbar or footer). Scroll to the
-    // form, then pop only once the scroll has actually settled on the hero —
+    // form, then pop only once the scroll has actually settled on the hero.
     // so the user always sees the animation, however far they scrolled from.
     const onFocus = () => {
       const el = formRef.current;

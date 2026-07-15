@@ -246,7 +246,7 @@ export function CampaignsView({
                 onChange={(event) => setAdPlatform(event.target.checked)}
                 className="h-4 w-4 rounded border-line accent-[var(--color-clay,#d9481e)]"
               />
-              Paid ad platform — show this group in Spending → Automation
+              Paid ad platform. Show this group in Spending → Automation.
             </label>
 
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -408,7 +408,7 @@ export function CampaignsView({
                 Also delete the {affectedLeadIds.length} lead
                 {affectedLeadIds.length === 1 ? "" : "s"} attributed to this group.
                 <span className="mt-0.5 block text-xs text-muted">
-                  Leave unchecked to keep them — they’ll move to “Unassigned”.
+                  Leave unchecked to keep them. They’ll move to “Unassigned”.
                 </span>
               </span>
             </label>

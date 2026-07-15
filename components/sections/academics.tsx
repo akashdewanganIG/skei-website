@@ -41,7 +41,7 @@ export default function Academics() {
                   }}
                   className="group relative flex h-full overflow-hidden rounded-2xl bg-surface shadow-soft ring-1 ring-line/70 transition-all duration-500 hover:-translate-y-2 hover:shadow-lift hover:ring-clay/30"
                 >
-                  {/* Left — content */}
+                  {/* Content on the left. */}
                   <div className="flex min-w-0 flex-1 flex-col p-5">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-clay/10">
                       <Icon className="h-[1.35rem] w-[1.35rem] stroke-[1.5] text-clay" />
@@ -64,7 +64,7 @@ export default function Academics() {
                     </a>
                   </div>
 
-                  {/* Right — tinted illustration panel (tint is baked into the art) */}
+                  {/* Tinted illustration panel on the right; the tint is baked into the art. */}
                   <div className="relative w-[40%] shrink-0 self-stretch bg-[#fcebdd]">
                     <Image
                       src={p.image}

@@ -2,45 +2,13 @@ import { NextResponse } from "next/server";
 import { recordAuditLog } from "@/lib/audit";
 import { hasPermission } from "@/lib/auth/permissions";
 import { getSession } from "@/lib/auth/session";
+import { leadImportDuplicateKey } from "@/lib/lead-deduplication";
 import { createLead, listLeads } from "@/lib/leads";
 import { isValidEmail, isValidIndianMobile, normalizeMobile } from "@/lib/validation";
 import type { Lead } from "@/types/lead";
 import { LEAD_STATUSES } from "@/types/lead";
 
 export const runtime = "nodejs";
-
-function fingerprint(
-  student_name: string,
-  grade: string,
-  dob: string,
-  gender: string,
-  parent_name: string,
-  mobile_no: string,
-  email: string,
-  source: string,
-  status: string,
-  comment: string,
-): string {
-  return [
-    student_name.trim().toLowerCase(),
-    grade.trim().toLowerCase(),
-    dob.trim(),
-    gender.trim().toLowerCase(),
-    parent_name.trim().toLowerCase(),
-    normalizeMobile(mobile_no),
-    email.trim().toLowerCase(),
-    source.trim(),
-    status.trim(),
-    comment.trim(),
-  ].join("\x00");
-}
-
-function leadFingerprint(l: Lead): string {
-  return fingerprint(
-    l.student_name, l.grade, l.dob, l.gender, l.parent_name,
-    l.mobile_no, l.email, l.source, l.status, l.comment,
-  );
-}
 
 export async function POST(request: Request) {
   const session = await getSession();
@@ -66,8 +34,8 @@ export async function POST(request: Request) {
   }
 
   const existingLeads = await listLeads();
-  const existingFingerprints = new Set(existingLeads.map(leadFingerprint));
-  const batchFingerprints = new Set<string>();
+  const existingDuplicateKeys = new Set(existingLeads.map(leadImportDuplicateKey));
+  const batchDuplicateKeys = new Set<string>();
 
   let imported = 0;
   let skipped = 0;
@@ -96,14 +64,13 @@ export async function POST(request: Request) {
       updated_by: session.name,
     };
 
-    const fp = fingerprint(
-      input.student_name, input.grade, input.dob, input.gender, input.parent_name,
-      input.mobile_no, input.email, input.source, input.status, input.comment,
-    );
+    const duplicateKey = leadImportDuplicateKey(input);
 
-    if (existingFingerprints.has(fp) || batchFingerprints.has(fp)) {
+    if (existingDuplicateKeys.has(duplicateKey) || batchDuplicateKeys.has(duplicateKey)) {
       skipped++;
-      errors.push(`Row ${rowNum}: Identical record already exists.`);
+      errors.push(
+        `Row ${rowNum}: A lead with the same student, parent, and mobile already exists.`,
+      );
       continue;
     }
 
@@ -124,7 +91,7 @@ export async function POST(request: Request) {
 
     try {
       await createLead(input);
-      batchFingerprints.add(fp);
+      batchDuplicateKeys.add(duplicateKey);
       imported++;
     } catch (err) {
       skipped++;
