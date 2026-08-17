@@ -149,7 +149,7 @@ export default function Hero() {
             id={ENQUIRY_ID}
             initial={{ opacity: 0, x: 30 }}
             animate={formControls}
-            className="mx-auto w-full max-w-lg scroll-mt-28 rounded-2xl shadow-[0_30px_70px_-25px_rgba(0,0,0,0.55)] lg:-mt-10 lg:mr-0"
+            className="mx-auto w-full max-w-lg scroll-mt-28 rounded-2xl shadow-[0_30px_70px_-25px_rgba(0,0,0,0.55)] lg:mr-0"
           >
             <EnquiryForm />
           </motion.div>

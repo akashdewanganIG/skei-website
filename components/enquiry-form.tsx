@@ -268,7 +268,7 @@ export default function EnquiryForm() {
             </Field>
           </div>
 
-          <Field label="Comment" id="comment" error={errors.comment}>
+          {/* <Field label="Comment" id="comment" error={errors.comment}>
             <textarea
               id="comment"
               value={f.comment}
@@ -278,7 +278,7 @@ export default function EnquiryForm() {
               className={`${fieldClass("comment")} resize-none`}
               aria-invalid={!!errors.comment}
             />
-          </Field>
+          </Field> */}
         </div>
 
         <div className="mt-5 flex w-full justify-center overflow-hidden">
