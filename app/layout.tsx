@@ -118,13 +118,13 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           }}
         />
       </head>
-      <GoogleTagManager gtmId="GTM-M45PJ6D2" />
+      <GoogleTagManager gtmId="GTM-WMDWTDSF" />
       <body className="grain antialiased">
         {/* Google Tag Manager noscript fallback because the component above does not render one. */}
         <noscript>
           <iframe
             title="Google Tag Manager"
-            src="https://www.googletagmanager.com/ns.html?id=GTM-M45PJ6D2"
+            src="https://www.googletagmanager.com/ns.html?id=GTM-WMDWTDSF"
             height="0"
             width="0"
             style={{ display: "none", visibility: "hidden" }}
