@@ -117,6 +117,22 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             __html: `(function(){try{var d=localStorage.getItem('theme')==='dark';document.documentElement.classList.toggle('dark',d);}catch(e){}})();`,
           }}
         />
+        {/* Meta Pixel Code */}
+        <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: Meta Pixel tracking script.
+          dangerouslySetInnerHTML={{
+            __html: `!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1771813017388587');
+fbq('track', 'PageView');`,
+          }}
+        />
       </head>
       <GoogleTagManager gtmId="GTM-WMDWTDSF" />
       <body className="grain antialiased">
@@ -131,6 +147,19 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           />
         </noscript>
         {/* End Google Tag Manager (noscript) */}
+        {/* Meta Pixel Code (noscript) */}
+        <noscript>
+          {/* biome-ignore lint/performance/noImgElement: Meta Pixel tracking image fallback does not need optimization */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            height="1"
+            width="1"
+            style={{ display: "none" }}
+            src="https://www.facebook.com/tr?id=1771813017388587&ev=PageView&noscript=1"
+            alt=""
+          />
+        </noscript>
+        {/* End Meta Pixel Code (noscript) */}
         {children}
         <Toaster
           richColors
