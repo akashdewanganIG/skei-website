@@ -149,8 +149,8 @@ fbq('track', 'PageView');`,
         {/* End Google Tag Manager (noscript) */}
         {/* Meta Pixel Code (noscript) */}
         <noscript>
+          {/* eslint-disable @next/next/no-img-element */}
           {/* biome-ignore lint/performance/noImgElement: Meta Pixel tracking image fallback does not need optimization */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             height="1"
             width="1"
@@ -158,6 +158,7 @@ fbq('track', 'PageView');`,
             src="https://www.facebook.com/tr?id=1771813017388587&ev=PageView&noscript=1"
             alt=""
           />
+          {/* eslint-enable @next/next/no-img-element */}
         </noscript>
         {/* End Meta Pixel Code (noscript) */}
         {children}
