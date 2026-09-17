@@ -12,12 +12,17 @@ import type { Lead } from "@/types/lead";
  */
 
 /**
- * Value written to the sheet's trailing "Source / Website Identifier" column.
- * Identifies which site the row came from; the older site sends
- * "SKEI Old Website". This is unrelated to the campaign attribution `source`
- * stored on the lead itself.
+ * Value written to the sheet's trailing "Source / Website Identifier" column,
+ * identifying which site a row came from. The older site writes its own
+ * identifier into the same column.
+ *
+ * Unrelated to the campaign attribution `source` stored on the lead itself —
+ * that stays in Postgres and never reaches the sheet.
+ *
+ * Update this if the site moves to a custom domain; it is the only place the
+ * identifier is defined.
  */
-export const SHEET_WEBSITE_ID = "SKEI New Website";
+export const SHEET_WEBSITE_ID = "skeischool.vercel.app";
 
 /** Server-only Apps Script web app URL (…/macros/s/<deployment>/exec). */
 const WEBAPP_URL_ENV = "GOOGLE_SHEETS_WEBAPP_URL";
