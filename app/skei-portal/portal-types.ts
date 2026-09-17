@@ -46,7 +46,6 @@ export type ManualLeadDraft = {
   email: string;
   source: CampaignSourceName;
   status: LeadStatus;
-  comment: string;
   remark: string;
 };
 

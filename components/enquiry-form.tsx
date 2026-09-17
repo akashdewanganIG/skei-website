@@ -30,7 +30,6 @@ type Fields = {
   parent: string;
   phone: string;
   email: string;
-  comment: string;
 };
 
 type Errors = Partial<Record<keyof Fields, string>>;
@@ -53,7 +52,6 @@ const EMPTY_FIELDS: Fields = {
   parent: "",
   phone: "",
   email: "",
-  comment: "",
 };
 
 const EMPTY_ATTRIBUTION: AttributionFields = {
@@ -147,7 +145,6 @@ export default function EnquiryForm() {
         parent_name: f.parent,
         mobile_no: f.phone,
         email: f.email,
-        comment: f.comment,
         recaptchaToken,
         ...readAttribution(),
       });
@@ -268,18 +265,6 @@ export default function EnquiryForm() {
               />
             </Field>
           </div>
-
-          {/* <Field label="Comment" id="comment" error={errors.comment}>
-            <textarea
-              id="comment"
-              value={f.comment}
-              onChange={onInputChange("comment")}
-              placeholder="Any additional information..."
-              rows={2}
-              className={`${fieldClass("comment")} resize-none`}
-              aria-invalid={!!errors.comment}
-            />
-          </Field> */}
         </div>
 
         <div className="mt-5 flex w-full justify-center overflow-hidden">

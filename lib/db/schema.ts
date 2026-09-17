@@ -16,7 +16,6 @@ export const leads = pgTable("leads", {
   parentName: text("parent_name").notNull().default(""),
   mobileNo: text("mobile_no").notNull().default(""),
   email: text("email").notNull().default(""),
-  comment: text("comment").notNull().default(""),
   source: text("source").notNull().default(""),
   utmSource: text("utm_source").notNull().default(""),
   utmMedium: text("utm_medium").notNull().default(""),

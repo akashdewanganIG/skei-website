@@ -48,7 +48,6 @@ function toLead(row: LeadRow): Lead {
     parent_name: row.parentName,
     mobile_no: row.mobileNo,
     email: row.email,
-    comment: row.comment,
     source: row.source,
     utm_source: row.utmSource,
     utm_medium: row.utmMedium,
@@ -74,7 +73,6 @@ type LeadInput = Partial<
     | "parent_name"
     | "mobile_no"
     | "email"
-    | "comment"
     | "source"
     | "utm_source"
     | "utm_medium"
@@ -102,7 +100,6 @@ export async function createLead(input: LeadInput): Promise<Lead> {
     parentName: input.parent_name ?? "",
     mobileNo: input.mobile_no ?? "",
     email: input.email ?? "",
-    comment: input.comment ?? "",
     source: input.source ?? "",
     utmSource: input.utm_source ?? "",
     utmMedium: input.utm_medium ?? "",
@@ -139,7 +136,6 @@ export async function updateLead(
   if (patch.parent_name !== undefined) set.parentName = patch.parent_name;
   if (patch.mobile_no !== undefined) set.mobileNo = patch.mobile_no;
   if (patch.email !== undefined) set.email = patch.email;
-  if (patch.comment !== undefined) set.comment = patch.comment;
   if (patch.source !== undefined) set.source = patch.source;
   if (patch.utm_source !== undefined) set.utmSource = patch.utm_source;
   if (patch.utm_medium !== undefined) set.utmMedium = patch.utm_medium;

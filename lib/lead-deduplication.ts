@@ -21,7 +21,7 @@ function normalizeIdentityMobile(value: string): string {
 /**
  * Return the stable identity used to detect duplicate imported leads.
  *
- * Status, grade, email, comments and attribution are deliberately excluded:
+ * Status, grade, email and attribution are deliberately excluded:
  * they can change without making the person a new lead. Student name remains
  * part of the key so siblings sharing a parent's mobile can both be imported.
  */

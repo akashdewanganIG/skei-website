@@ -188,7 +188,6 @@ export function Dashboard({
         lead.parent_name,
         lead.mobile_no,
         lead.email,
-        lead.comment,
         lead.grade,
         source.name,
       ]

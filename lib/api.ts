@@ -6,7 +6,6 @@ export type EnquiryPayload = {
   parent_name: string;
   mobile_no: string;
   email: string;
-  comment: string;
   recaptchaToken: string;
   source?: string;
   utm_source?: string;

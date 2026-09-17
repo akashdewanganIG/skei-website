@@ -186,15 +186,6 @@ export function ManualLeadDialog({
             value={draft.remark}
             onChange={(value) => updateDraft({ remark: value })}
           />
-          <label className="flex flex-col gap-1.5 md:col-span-2">
-            <span className="text-xs font-semibold text-muted">Call notes</span>
-            <textarea
-              value={draft.comment}
-              onChange={(event) => updateDraft({ comment: event.target.value })}
-              rows={4}
-              className="resize-none rounded-lg border border-line bg-bg/45 px-3 py-2 text-sm text-fg outline-none transition-colors focus:border-clay/50 focus:ring-2 focus:ring-clay/20"
-            />
-          </label>
         </div>
       </div>
 

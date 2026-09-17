@@ -40,7 +40,6 @@ export const EMPTY_LEAD_FORM: ManualLeadDraft = {
   email: "",
   source: "",
   status: "New",
-  comment: "",
   remark: "",
 };
 

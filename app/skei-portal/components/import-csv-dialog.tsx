@@ -6,8 +6,6 @@ import { toast } from "sonner";
 import { LEAD_IMPORT_COLUMNS } from "../portal-utils";
 
 const PREVIEW_LIMIT = 5;
-// The compact preview hides the long "Comment" column; it is editable in the full editor.
-const PREVIEW_COLUMNS = LEAD_IMPORT_COLUMNS.filter((col) => col.key !== "comment");
 
 type Row = Record<string, string>;
 
@@ -98,7 +96,7 @@ export function ImportCsvDialog({
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-line bg-bg/45">
-                  {PREVIEW_COLUMNS.map((col) => (
+                  {LEAD_IMPORT_COLUMNS.map((col) => (
                     <th key={col.key} className="px-3 py-2 text-left font-semibold text-muted">
                       {col.label}
                     </th>
@@ -108,7 +106,7 @@ export function ImportCsvDialog({
               <tbody>
                 {preview.map((row, i) => (
                   <tr key={i} className="border-b border-line last:border-0">
-                    {PREVIEW_COLUMNS.map((col) => (
+                    {LEAD_IMPORT_COLUMNS.map((col) => (
                       <td key={col.key} className="max-w-[160px] truncate px-3 py-2 text-fg/80">
                         {row[col.key] || <span className="text-muted/40">Not provided</span>}
                       </td>
@@ -247,9 +245,7 @@ function FullEditor({
                       <input
                         defaultValue={row[col.key] ?? ""}
                         onChange={(e) => onChange(i, col.key, e.target.value)}
-                        className={`h-8 w-full rounded border border-transparent bg-transparent px-2 text-fg outline-none transition-colors hover:border-line focus:border-clay/50 focus:bg-bg ${
-                          col.key === "comment" ? "min-w-[280px]" : "min-w-[120px]"
-                        }`}
+                        className="h-8 w-full min-w-[120px] rounded border border-transparent bg-transparent px-2 text-fg outline-none transition-colors hover:border-line focus:border-clay/50 focus:bg-bg"
                       />
                     </td>
                   ))}

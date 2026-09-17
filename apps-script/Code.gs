@@ -34,7 +34,6 @@ var LEAD_FIELDS = [
   "parent_name",
   "mobile_no",
   "email",
-  "comment",
 ];
 
 function getSheet_() {

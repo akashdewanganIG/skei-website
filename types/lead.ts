@@ -53,7 +53,6 @@ export type Lead = {
   parent_name: string;
   mobile_no: string;
   email: string;
-  comment: string;
   source: string;
   utm_source: string;
   utm_medium: string;
@@ -76,7 +75,6 @@ export const EDITABLE_LEAD_FIELDS = [
   "parent_name",
   "mobile_no",
   "email",
-  "comment",
 ] as const;
 
 export type EditableLeadField = (typeof EDITABLE_LEAD_FIELDS)[number];

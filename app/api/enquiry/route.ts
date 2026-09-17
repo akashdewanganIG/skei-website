@@ -1,9 +1,11 @@
-import { NextResponse } from "next/server";
-import { listCampaignCategories } from "@/lib/campaigns";
+import { after, NextResponse } from "next/server";
 import { inferSourceFromAttribution } from "@/lib/campaign-attribution";
+import { listCampaignCategories } from "@/lib/campaigns";
+import { mirrorLeadToSheet } from "@/lib/google-sheets";
 import { createLead } from "@/lib/leads";
 import { verifyRecaptchaToken } from "@/lib/recaptcha";
 import { getTrimmedString, isValidEmail, isValidIndianMobile } from "@/lib/validation";
+import type { Lead } from "@/types/lead";
 
 export const runtime = "nodejs";
 
@@ -23,7 +25,6 @@ export async function POST(request: Request) {
     parent_name: getTrimmedString(body, "parent_name"),
     mobile_no: getTrimmedString(body, "mobile_no"),
     email: getTrimmedString(body, "email"),
-    comment: getTrimmedString(body, "comment").slice(0, 2000),
     attribution_source: getTrimmedString(body, "source").slice(0, 180),
     utm_source: getTrimmedString(body, "utm_source").slice(0, 180),
     utm_medium: getTrimmedString(body, "utm_medium").slice(0, 180),
@@ -55,6 +56,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: recaptcha.error }, { status: recaptcha.status });
   }
 
+  let lead: Lead;
   try {
     const categories = await listCampaignCategories();
     const source = inferSourceFromAttribution(
@@ -66,12 +68,11 @@ export async function POST(request: Request) {
         utmTerm: input.utm_term,
         utmContent: input.utm_content,
         referrer: input.referrer,
-        comment: input.comment,
       },
       categories,
     );
 
-    await createLead({
+    lead = await createLead({
       ...input,
       source: source.name,
       utm_source: input.utm_source,
@@ -81,9 +82,19 @@ export async function POST(request: Request) {
       utm_content: input.utm_content,
       referrer: input.referrer,
     });
-    return NextResponse.json({ ok: true }, { status: 201 });
   } catch (error) {
     console.error("Failed to save enquiry:", error);
     return NextResponse.json({ error: "Could not submit enquiry." }, { status: 500 });
   }
+
+  // Secondary copy into the shared SKEI Google Sheet, deferred until after the
+  // response is flushed. Awaiting it here would add the Apps Script round trip
+  // to every submission and, on a hanging script, could push this request past
+  // the platform's function timeout — turning a lead that was already saved
+  // into a visible error and inviting a duplicate resubmission. The lead is
+  // committed by this point and mirrorLeadToSheet never throws, so the mirror
+  // can only ever succeed quietly or log.
+  after(() => mirrorLeadToSheet(lead));
+
+  return NextResponse.json({ ok: true }, { status: 201 });
 }

@@ -45,7 +45,6 @@ const LEAD_EXPORT_COLUMNS: LeadExportColumn[] = [
   { key: "utm_term", header: "UTM Term", width: 16 },
   { key: "utm_content", header: "UTM Content", width: 18 },
   { key: "referrer", header: "Referrer", width: 26 },
-  { key: "comment", header: "Comment", width: 32 },
   { key: "status", header: "Status", width: 16 },
   { key: "remark", header: "Remark", width: 32 },
   { key: "updated_by", header: "Updated By", width: 18 },
@@ -153,7 +152,6 @@ export const LEAD_IMPORT_COLUMNS: ImportColumn[] = [
   { key: "parent_name", label: "Parent Name" },
   { key: "mobile_no", label: "Mobile No" },
   { key: "email", label: "Email" },
-  { key: "comment", label: "Comment" },
 ];
 
 /** Known header spellings for each canonical field (snake_case, lowercased). */
@@ -165,7 +163,6 @@ const IMPORT_FIELD_ALIASES: Record<string, string[]> = {
   parent_name: ["parent_name", "parent", "guardian", "guardian_name", "father_name", "mother_name", "parents_name"],
   mobile_no: ["mobile_no", "mobile", "mobile_number", "phone", "phone_no", "phone_number", "contact", "contact_no", "contact_number", "whatsapp", "cell"],
   email: ["email", "email_id", "email_address", "e_mail", "mail"],
-  comment: ["comment", "comments", "message", "enquiry", "enquiry_message", "note", "notes", "query"],
 };
 
 /** Lowercase a header into a comparable token, e.g. "Date of Birth" -> "date_of_birth". */
@@ -277,7 +274,7 @@ function cleanImportValue(key: string, raw: string): string {
 /**
  * Some exports cram an entire delimited row into a single spreadsheet column.
  * this happens when a semicolon/tab CSV is opened in Excel as a comma file: the
- * real delimiter keeps the row in column A, but stray commas (inside comments)
+ * real delimiter keeps the row in column A, but stray commas (inside free-text cells)
  * spill the tail into columns B, C, … To recover the original row we rejoin the
  * cells with a comma (the char Excel split on) and then split on the real
  * delimiter detected from the header.

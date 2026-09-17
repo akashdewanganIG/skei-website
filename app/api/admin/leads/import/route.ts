@@ -57,7 +57,6 @@ export async function POST(request: Request) {
       parent_name: row.parent_name?.trim() ?? "",
       mobile_no: normalizeMobile(row.mobile_no ?? ""),
       email: row.email?.trim() ?? "",
-      comment: (row.comment?.trim() ?? "").slice(0, 2000),
       source: row.source?.trim() ?? "",
       status,
       remark: (row.remark?.trim() ?? "").slice(0, 2000),

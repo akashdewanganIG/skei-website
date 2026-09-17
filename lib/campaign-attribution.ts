@@ -28,7 +28,6 @@ export type LeadAttribution = {
   utmTerm?: string;
   utmContent?: string;
   referrer?: string;
-  comment?: string;
 };
 
 const FALLBACK_SOURCE: CampaignSource = {
@@ -165,8 +164,7 @@ export function inferSourceFromAttribution(
     .map((value) => value?.trim())
     .filter((value): value is string => Boolean(value));
 
-  for (const value of [...campaignTags, attribution.comment?.trim() ?? ""]) {
-    if (!value) continue;
+  for (const value of campaignTags) {
     const source = findCampaignSource(value, categories);
     if (source) return source;
   }
@@ -212,7 +210,6 @@ export function inferCampaignSource(
     Lead,
     | "id"
     | "mobile_no"
-    | "comment"
     | "email"
     | "student_name"
     | "parent_name"
@@ -227,11 +224,6 @@ export function inferCampaignSource(
   categories?: readonly CampaignCategory[] | null,
 ): CampaignSource {
   const savedSource = lead.source.trim();
-  const explicit = /(?:^|\n)\s*Campaign:\s*([^\n\r]+)/i.exec(lead.comment);
-  if (explicit?.[1]) {
-    const source = findCampaignSource(explicit[1], categories);
-    if (source) return source;
-  }
 
   // An exact, stored source that matches a defined campaign is an intentional
   // signal, whether captured at submit time or set by an admin reassigning the lead,
@@ -248,7 +240,6 @@ export function inferCampaignSource(
       utmTerm: lead.utm_term,
       utmContent: lead.utm_content,
       referrer: lead.referrer,
-      comment: lead.comment,
     },
     categories,
   );

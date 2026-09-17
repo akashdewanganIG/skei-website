@@ -30,7 +30,6 @@ const FIELD_LABELS: Record<(typeof EDITABLE_LEAD_FIELDS)[number], string> = {
   parent_name: "Parent name",
   mobile_no: "Mobile",
   email: "Email",
-  comment: "Comment",
 };
 
 export function LeadDetail({

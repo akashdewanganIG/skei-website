@@ -40,7 +40,6 @@ function qualityScore(lead: Lead): number {
   let score = 28 + statusBoost[lead.status];
   if (lead.email) score += 8;
   if (/^\d{10}$/.test(lead.mobile_no.replace(/\D/g, ""))) score += 8;
-  if (lead.comment.trim().length > 25) score += 7;
   if (/nursery|grade 1|grade 2|grade 3/i.test(lead.grade)) score += 5;
   return Math.max(8, Math.min(98, score));
 }

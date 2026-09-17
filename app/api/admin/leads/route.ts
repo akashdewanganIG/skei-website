@@ -71,7 +71,6 @@ export async function POST(request: Request) {
     parent_name: getTrimmedString(body, "parent_name"),
     mobile_no: getTrimmedString(body, "mobile_no"),
     email: getTrimmedString(body, "email"),
-    comment: getTrimmedString(body, "comment").slice(0, 2000),
     source,
     status,
     remark: getTrimmedString(body, "remark").slice(0, 2000),

@@ -278,11 +278,6 @@ function LeadCards({
               <span>{lead.parent_name || "-"}</span>
               <span className="font-medium text-fg">{lead.mobile_no || "-"}</span>
             </div>
-            {lead.comment && (
-              <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-muted">
-                {lead.comment}
-              </p>
-            )}
           </button>
         );
       })}
